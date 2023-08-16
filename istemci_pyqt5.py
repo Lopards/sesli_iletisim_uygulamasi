@@ -44,17 +44,17 @@ class istemci_page(QMainWindow):
         self.Thread = None
 
         self.Event = threading.Event()
-        
-
+        self.stop_event = threading.Event()
+        self.output_stream = None
         self.server_socket = None
         self.stream = None
-        
 
+        self.alinan_index_bytes =None
         self.ip_file = "ip_addresses.txt"  # IP adreslerini saklayan dosya adı
         self.istemci.ip_listesi.itemDoubleClicked.connect(self.item_double_clicked)
         
         self.ip_listesini_comboboxa_ekle()
-        
+        #self.scan_ip()
 
 
     def receive_text(self):
@@ -76,17 +76,19 @@ class istemci_page(QMainWindow):
 
                 metin = data.decode("utf-8")
                 
-                self.istemci.metin_yeri.insertPlainText(metin+".")
+                self.istemci.metin_yeri.insertPlainText(metin+". ")
                 alinan_index_bytes = server_socket_text.recv(10)  # 10 byte olarak gelen veriyi al
                 alinan_index = int.from_bytes(alinan_index_bytes, byteorder="big")
+                #self.alinan_index_bytes = server_socket_text.recv(10)
+
                 #metin = self.istemci.metin_yeri.toPlainText()
                 print(alinan_index)
-                time.sleep(1)
+                
                 # alınan_index değeri; sunucu tarafından gelen efekt seçimidir. 0 = erkek, 1 = kadın .....
                 if alinan_index == 0:
                     
                     read_man(metin)
-                    time.sleep(3)
+                    
                     
                     #self.istemci.metin_yeri.clear()    
 
@@ -101,6 +103,10 @@ class istemci_page(QMainWindow):
 
                 elif alinan_index == 4:
                     read_old_man(metin)
+                
+                
+                
+                
 
 
             except ConnectionResetError:
@@ -113,6 +119,9 @@ class istemci_page(QMainWindow):
     
 
     
+
+       
+
     def send_audio(self):
         p = pyaudio.PyAudio()
 
@@ -126,6 +135,7 @@ class istemci_page(QMainWindow):
         max_esik_deger = 850
 
         while self.is_running:
+            
             data = stream.read(self.CHUNK)
             audio_data = np.frombuffer(data, np.int16)
             
@@ -175,12 +185,15 @@ class istemci_page(QMainWindow):
             self.is_running = False
 
     def receive_audio(self):
+        #hoparlor=self.select_output_device()
+        self.play_button_clicked()
         p = pyaudio.PyAudio()
         stream = p.open(format=self.FORMAT,
                         channels=self.CHANNELS,
                         rate=self.RATE,
                         output=True)
-
+        
+        
         while self.is_running_recv:
             try:
                 data = self.server_socket.recv(self.CHUNK)
@@ -189,7 +202,8 @@ class istemci_page(QMainWindow):
                     break
 
                 if self.Event.is_set() and self.contunie:
-                    stream.write(data)
+                    #stream.write(data)
+                    self.play_server_output(data)
             except Exception as e:
                 if self.server_socket is not None and self.contunie:
                     print("Bağlantı sıfırlandı... Yeniden bağlanılıyor.\n", e)
@@ -273,7 +287,7 @@ class istemci_page(QMainWindow):
     # Hoparlör listesini terminalde göster
         
         time.sleep(1)
-        self.receive_text_thread()
+        #self.receive_text_thread()
         
         time.sleep(1)
         self.get_sound()
@@ -366,8 +380,71 @@ class istemci_page(QMainWindow):
                 f.write(ip_address + "\n")
        
 
+    def set_output_stream(self, output_device):
+        p = pyaudio.PyAudio()
+        try:
+            self.output_stream = p.open(
+                output=True,
+                format=pyaudio.paInt16,
+                channels=self.CHANNELS,
+                rate=self.RATE,
+                frames_per_buffer=self.CHUNK,
+                output_device_index=output_device,
+            )
+        except OSError as e:
+            print("Hoparlör bağlantısı yapılamadı:", e)
+            self.output_stream = None
+                            ##### ********** ######
+    def play_server_output(self, data):
+        if self.output_stream is not None:
+            try:
+                self.output_stream.write(data)
+            except OSError as e:
+                print("Hoparlör bağlantısı koparıldı:", e)
+                self.output_stream.close()
+                self.output_stream.stop_stream()
+                self.output_stream = None
+                
+                
+                
+        else:
+            print("Hoparlör seçiniz...")
+            
+                        ##### ********** ######
+    def select_output_device(self):
+        index_bytes = self.server_socket.recv(10)  # İhtiyaca göre byte sayısını ayarlayın
+        index = int.from_bytes(index_bytes,byteorder="big")
+        print(index)
+        device_indexes = index
+        print(device_indexes)
+        if device_indexes is not None:
+            return device_indexes
+        else:
+            # Eğer herhangi bir öğe seçilmemişse, None döndür
+            return None
+        
 
-       
+
+    def play_button_clicked(self):
+        
+        output_device = self.select_output_device()
+        print(output_device)
+        if output_device is not None:
+            print("Output Device:", output_device)
+            self.set_output_stream(output_device)
+            self.stop_event.clear()
+        else:
+            print("Hoparlör seçilmedi. Devam edemiyoruz.")
+
+    """def alinan_hop_byts(self):
+        index_bytes = self.server_socket.recv()  # İhtiyaca göre byte sayısını ayarlayın
+        index = int.from_bytes(index_bytes)
+        print(index)
+        return index"""
+
+        
+        #self.play_server_output(data)
+        
 """app = QApplication([])
 window = istemci_page()
 window.show()
