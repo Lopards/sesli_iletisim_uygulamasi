@@ -1,18 +1,17 @@
 from PyQt5.QtWidgets import *
 from src_ui.sunucu import Ui_Dialog
-from ses_kaydedici_pyqt5 import sound_record_page
+from src_py.ses_kaydedici_pyqt5 import sound_record_page
 import os 
 import numpy as np
 import soundfile as sf
 
-from anlik_erkek_pyqt5 import anlik_erkek_page
-from anlik_kadin_pyqt5 import anlik_kadin_page
+from src_py.anlik_erkek_pyqt5 import anlik_erkek_page
+from src_py.anlik_kadin_pyqt5 import anlik_kadin_page
 from src.Men_voice import men
 from src.kadin_Sesi import woman
 from src.children_voice import children
 from src.yasli_erkek import make_old_man_voice
-from server_erkek_pyqt5 import server_erkek_page
-from server_kadin_pyqt5 import server_kadin_page
+
 from src_metin.metin_oku import *
 from datetime import datetime
 

@@ -1,8 +1,8 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QAction, QLabel, QVBoxLayout, QWidget
-from server_erkek_pyqt5 import server_erkek_page
-from server_kadin_pyqt5 import server_kadin_page
-from sunucu_pyqt5 import Sunucu_page
+from src_py.server_erkek_pyqt5 import server_erkek_page
+from src_py.server_kadin_pyqt5 import server_kadin_page
+from src_py.sunucu_pyqt5 import Sunucu_page
 class MyWindow(QMainWindow):
     def __init__(self):
         super().__init__()

@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import *
 from src_ui.secim_ekrani import  Secim
 
-from istemci_pyqt5 import istemci_page
+from src_py.istemci_pyqt5 import istemci_page
 from src_ui.menu_sunucu_tarafi import MyWindow
 class login_page(QMainWindow):
     def  __init__(self) -> None:

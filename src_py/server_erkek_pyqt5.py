@@ -488,7 +488,7 @@ class server_erkek_page(QWidget):
         t1 = threading.Thread(target=self.yazi_gonder)
         t1.start()
 
-app = QApplication([])
+"""app = QApplication([])
 window = server_erkek_page()
 window.show()
-app.exec_()
+app.exec_()"""
