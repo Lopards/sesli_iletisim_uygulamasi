@@ -287,7 +287,7 @@ class istemci_page(QMainWindow):
     # Hoparlör listesini terminalde göster
         
         time.sleep(1)
-        #self.receive_text_thread()
+        self.receive_text_thread()
         
         time.sleep(1)
         self.get_sound()
