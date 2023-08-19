@@ -18,7 +18,8 @@ class istemci_page(QMainWindow):
         self.istemci.setupUi(self)
 
         self.istemci.ip_tara_buton.clicked.connect(self.scan_ip)
-        self.istemci.baglan_buton.clicked.connect(self.connect_to_server)
+        self.istemci.otomatik_baglan_buton.clicked.connect(self.connect_to_server_Automatic)
+        self.istemci.manuel_baglan.clicked.connect(self.connect_to_server_Manuel)
 
         self.istemci.ses_gonder_buton.clicked.connect(self.start_communication)
         self.istemci.Ses_gonder_dur.clicked.connect(self.stop_communication)
@@ -174,7 +175,7 @@ class istemci_page(QMainWindow):
 
                     print("Beklenmedik bir hata oluştu... Lütfen bekleyiniz: ", e)
                     print("Yeniden bağlanılmaya çalışılıyor.")
-                    self.connect_to_server()
+                    self.connect_to_server_Automatic()
            
 
         stream.stop_stream()
@@ -192,6 +193,7 @@ class istemci_page(QMainWindow):
 
     def receive_audio(self):
         #hoparlor=self.select_output_device()
+        
         while not self.output_stream:
             self.play_button_clicked()
             
@@ -218,7 +220,7 @@ class istemci_page(QMainWindow):
             except Exception as e:
                 if self.server_socket is not None and self.contunie:
                     print("Bağlantı sıfırlandı... Yeniden bağlanılıyor.\n", e)
-                    self.connect_to_server()
+                    self.connect_to_server_Automatic()
                     
                     data = self.server_socket.recv(self.CHUNK)
 
@@ -282,7 +284,7 @@ class istemci_page(QMainWindow):
 
         
         
-    def connect_to_server(self):
+    def connect_to_server_Automatic(self):
         nm = nmap.PortScanner()
         nm.scan('192.168.1.0/24', arguments='-p {}'.format(self.PORT))
         hosts = nm.all_hosts()
@@ -354,7 +356,7 @@ class istemci_page(QMainWindow):
 
                 break
             except (ConnectionRefusedError, socket.timeout):
-                print("olmadi")
+                print("Sanırım Bu değil")
                 pass
 
         # IP adresi bulunduysa, listeye ekleyin
@@ -378,36 +380,71 @@ class istemci_page(QMainWindow):
     def scan_ip(self):
         
         nm = nmap.PortScanner()
-        nm.scan('192.168.1.0/24', arguments='-p {}'.format(self.PORT))
+        nm.scan('192.168.1.0/24', arguments='-sn')
         hosts = nm.all_hosts()
-
-        server_ip = None  # Sadece socket ile sunucu açan bilgisayarın IP adresi
-
+        print("Ağdaki tüm cihazların IP ve MAC adresleri:")
+        
         for host in hosts:
-            try:
-                server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                server_socket.settimeout(1)
-                server_socket.connect((host, self.PORT))
-                server_socket.close()
-                server_ip = host
-                print(f"Sadece socket ile sunucu açan bilgisayarın IP Adresi: {server_ip}")
-                break
-            except (ConnectionRefusedError, socket.timeout):
-                pass
+            if 'mac' in nm[host]['addresses']:
+                ip_address = nm[host]['addresses']['ipv4']
+                mac_address = nm[host]['addresses']['mac']
+                item_text = f"{ip_address}    {mac_address}"
+                item = QListWidgetItem(item_text)
+                self.istemci.ip_listesi.addItem(item)
 
-        # IP adresi bulunduysa, listeye ekleyin
-        if server_ip:
-            itemtext = f"{server_ip}"
-            item = QListWidgetItem(itemtext)
-            self.istemci.ip_listesi.addItem(item)
+    def connect_to_server_Manuel(self):
+        #combobox'daki seçilen ip adresini Host'a ata
+        selected_ip = self.istemci.ip_combobox.currentText()
+        self.HOST = selected_ip
+        print("{} - bağlanılmaya çalışıyor".format(self.HOST))
+        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server_socket.connect((self.HOST, self.PORT))
+        print(f"Bağlantı sağlandı: {self.HOST}")
+        
+        time.sleep(1)
+        #self.server_hoparlor()
+        self.hoparlor_liste()
+    # Hoparlör listesini terminalde göster
 
-        #self.listbox.insert(tk.END,ip_address+"     "+str(mac_address))
+        time.sleep(1)
+        self.receive_text_thread()
+
+        time.sleep(1)
+        self.get_sound()
+
+
+        time.sleep(1)
+        self.get_sound_continue()
+        self.start_communication()
+        time.sleep(1)
+        
+        
+        p = pyaudio.PyAudio()
+        stream = p.open(format=pyaudio.paInt16,
+                            channels=self.CHANNELS,
+                            rate=self.RATE,
+                            input=True,
+                            frames_per_buffer=self.CHUNK)
+        speaker_stream = p.open(format=pyaudio.paInt16,
+                                    channels=self.CHANNELS,
+                                    rate=self.RATE,
+                                    output=True)
+        
+        stream.stop_stream()
+        stream.close()
+        speaker_stream.stop_stream()
+        speaker_stream.close()
+        p.terminate()
+
+
+
     def item_double_clicked(self, item):
         # Çift tıklanan seçeneğin metnini al
         selected_text = item.text()
         ip_adres = selected_text.split()[0]
         # Metni ip_combobox'a ekle
         self.istemci.ip_combobox.addItem(ip_adres)
+        self.save_ip_address(ip_adres)
 
 
     def ip_listesini_comboboxa_ekle(self):
@@ -422,12 +459,21 @@ class istemci_page(QMainWindow):
         # Alınan IP adreslerini combobox'a ekle
         for ip_address in ip_addresses:
             self.istemci.ip_combobox.addItem(ip_address)
+            #self.save_ip_address(ip_address)
 
 
     def save_ip_address(self, ip_address):
-            with open(self.ip_file, "a") as f:
-                f.write(ip_address + "\n")
-       
+        with open(self.ip_file, "r") as f:
+            ip_addresses = [line.strip() for line in f]
+
+        if ip_address not in ip_addresses:
+            ip_addresses.insert(0, ip_address)  # Yeni IP adresini en üstte ekleyin
+
+            with open(self.ip_file, "w") as f:  # Dosyanın içeriğini yeniden yazmak için "w" modunu kullanın
+                for ip in ip_addresses:
+                    f.write(ip + "\n")
+
+        
 
     def set_output_stream(self, output_device):
         p = pyaudio.PyAudio()
@@ -489,7 +535,7 @@ class istemci_page(QMainWindow):
         
         #self.play_server_output(data)
         
-"""app = QApplication([])
+app = QApplication([])
 window = istemci_page()
 window.show()
-app.exec_()"""
+app.exec_()
