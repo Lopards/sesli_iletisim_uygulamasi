@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import *
 from PyQt5.QtWidgets import QWidget
-from src_ui.anlik_erkek import Ui_Anlik_Erkek_Window
+from src_py.src_ui.anlik_erkek import Ui_Anlik_Erkek_Window
 import pyaudio
 import numpy as np
 from scipy import signal

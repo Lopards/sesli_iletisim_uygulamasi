@@ -1,7 +1,7 @@
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import *
 from PyQt5.QtWidgets import QWidget
-from src_ui.anlik_kadin import Ui_AnlikKadn_window
+from src_py.src_ui.anlik_kadin import Ui_AnlikKadn_window
 import pyaudio
 import numpy as np
 from scipy import signal

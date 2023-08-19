@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import *
-from src_ui.sunucu import Ui_Dialog
+from src_py.src_ui.sunucu import Ui_Dialog
 from src_py.ses_kaydedici_pyqt5 import sound_record_page
 import os 
 import numpy as np
@@ -7,12 +7,12 @@ import soundfile as sf
 
 from src_py.anlik_erkek_pyqt5 import anlik_erkek_page
 from src_py.anlik_kadin_pyqt5 import anlik_kadin_page
-from src.Men_voice import men
-from src.kadin_Sesi import woman
-from src.children_voice import children
-from src.yasli_erkek import make_old_man_voice
+from src_py.src.Men_voice import men
+from src_py.src.kadin_Sesi import woman
+from src_py.src.children_voice import children
+from src_py.src.yasli_erkek import make_old_man_voice
 
-from src_metin.metin_oku import *
+from src_py.src_metin.metin_oku import *
 from datetime import datetime
 
 class Sunucu_page(QMainWindow):

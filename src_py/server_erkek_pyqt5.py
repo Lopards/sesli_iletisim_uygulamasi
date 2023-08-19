@@ -1,7 +1,7 @@
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import *
 from PyQt5.QtWidgets import QWidget
-from src_ui.server_man import Ui_Form
+from src_py.src_ui.server_man import Ui_Form
 from PyQt5.QtGui import QStandardItem, QStandardItemModel
 
 import socket
@@ -92,7 +92,7 @@ class server_erkek_page(QWidget):
             item = QStandardItem(device_name)
             model.appendRow(item)
             liste = f"{index+1}. hoparlör: {device_name}"
-            print(liste)
+
             
 
         self.server_erkek.hoparlor_lis.setModel(model)

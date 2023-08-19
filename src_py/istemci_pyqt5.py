@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import *
-from src_ui.istemci import Ui_Dialog
+from src_py.src_ui.istemci import Ui_Dialog
 from PyQt5.QtWidgets import QListWidgetItem
 import threading
 import pyaudio
@@ -9,7 +9,7 @@ import nmap
 import time
 import pickle
 from PyQt5.QtGui import QStandardItem, QStandardItemModel
-from src_metin.metin_oku import *
+from src_py.src_metin.metin_oku import *
 
 class istemci_page(QMainWindow):
     def __init__(self) -> None:
@@ -535,7 +535,7 @@ class istemci_page(QMainWindow):
         
         #self.play_server_output(data)
         
-app = QApplication([])
+"""app = QApplication([])
 window = istemci_page()
 window.show()
-app.exec_()
+app.exec_()"""

@@ -1,7 +1,7 @@
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import *
 from PyQt5.QtWidgets import QWidget
-from src_ui.ses_kaydi import  Ui_Ses_kaydi_window
+from src_py.src_ui.ses_kaydi import  Ui_Ses_kaydi_window
 
 import pyaudio
 import numpy as np

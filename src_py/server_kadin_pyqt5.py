@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import *
 from PyQt5.QtWidgets import QWidget
-from src_ui.server_kadin import Ui_Form
+from src_py.src_ui.server_kadin import Ui_Form
 
 from PyQt5.QtGui import QStandardItem, QStandardItemModel
 
