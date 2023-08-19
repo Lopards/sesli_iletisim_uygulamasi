@@ -49,7 +49,7 @@ class istemci_page(QMainWindow):
         self.server_socket = None
         self.stream = None
 
-        self.alinan_index_bytes =None
+
         self.ip_file = "ip_addresses.txt"  # IP adreslerini saklayan dosya adı
         self.istemci.ip_listesi.itemDoubleClicked.connect(self.item_double_clicked)
         
@@ -110,6 +110,12 @@ class istemci_page(QMainWindow):
 
 
             except ConnectionResetError:
+                if not metin_flag:
+                    server_socket_text = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    server_socket_text.connect((self.HOST, self.PORT_TEXT))
+                # self.server_socket,adress = se
+                    print(f"Metin için Bağlantı sağlandı: {self.HOST}")
+                    metin_flag = True
                 break
         server_socket_text.close()
 
@@ -186,7 +192,9 @@ class istemci_page(QMainWindow):
 
     def receive_audio(self):
         #hoparlor=self.select_output_device()
-        self.play_button_clicked()
+        while not self.output_stream:
+            self.play_button_clicked()
+            
         p = pyaudio.PyAudio()
         stream = p.open(format=self.FORMAT,
                         channels=self.CHANNELS,
@@ -195,14 +203,17 @@ class istemci_page(QMainWindow):
         
         
         while self.is_running_recv:
+            
             try:
+                
                 data = self.server_socket.recv(self.CHUNK)
-
+                
                 if not data:
                     break
 
                 if self.Event.is_set() and self.contunie:
                     #stream.write(data)
+                    
                     self.play_server_output(data)
             except Exception as e:
                 if self.server_socket is not None and self.contunie:
@@ -222,7 +233,7 @@ class istemci_page(QMainWindow):
         stream.close()
         self.server_socket.close()
         p.terminate()
-
+        #şu anda yeniden bağlanmada sorun var hop. listesi gönderilmeli
 
 
     def get_sound(self):
@@ -272,52 +283,82 @@ class istemci_page(QMainWindow):
         
         
     def connect_to_server(self):
+        nm = nmap.PortScanner()
+        nm.scan('192.168.1.0/24', arguments='-p {}'.format(self.PORT))
+        hosts = nm.all_hosts()
         
-        
-        #combobox'daki seçilen ip adresini Host'a ata
-        selected_ip = self.istemci.ip_combobox.currentText()
-        self.HOST = selected_ip
-        
-        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server_socket.connect((self.HOST, self.PORT))
-        print(f"Bağlantı sağlandı: {self.HOST}")
-        time.sleep(1)
-        #self.server_hoparlor()
-        self.hoparlor_liste()
-    # Hoparlör listesini terminalde göster
-        
-        time.sleep(1)
-        self.receive_text_thread()
-        
-        time.sleep(1)
-        self.get_sound()
-        
-        time.sleep(1)
-        self.get_sound_continue()
+        server_ip = None  # Sadece socket ile sunucu açan bilgisayarın IP adresi
 
-        self.start_communication()
-        time.sleep(1)
+        for host in hosts:
+            try:
+                self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self.server_socket.settimeout(3)
+                #self.server_socket.settimeout(1)
+                
+                server_ip = host
+                print(f"Sadece socket ile sunucu açan bilgisayarın IP Adresi: {server_ip}")
 
+                """if server_ip:
+                    itemtext = f"{server_ip}"
+                    item = QListWidgetItem(itemtext)
+                    self.istemci.ip_listesi.addItem(item)"""
         
         
-        p = pyaudio.PyAudio()
-        stream = p.open(format=pyaudio.paInt16,
-                            channels=self.CHANNELS,
-                            rate=self.RATE,
-                            input=True,
-                            frames_per_buffer=self.CHUNK)
+                #combobox'daki seçilen ip adresini Host'a ata
+                #selected_ip = self.istemci.ip_combobox.currentText()
+                self.HOST = server_ip
+                
+                #self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self.server_socket.connect((self.HOST, self.PORT))
+                print(f"Bağlantı sağlandı: {self.HOST}")
+                time.sleep(1)
+                #self.server_hoparlor()
+                self.hoparlor_liste()
+            # Hoparlör listesini terminalde göster
+                
+                time.sleep(1)
+                self.receive_text_thread()
+                
+                time.sleep(1)
+                self.get_sound()
+                
+                time.sleep(1)
+                self.get_sound_continue()
 
-        speaker_stream = p.open(format=pyaudio.paInt16,
+                self.start_communication()
+                time.sleep(1)
+
+                
+                
+                p = pyaudio.PyAudio()
+                stream = p.open(format=pyaudio.paInt16,
                                     channels=self.CHANNELS,
                                     rate=self.RATE,
-                                    output=True)
-        
+                                    input=True,
+                                    frames_per_buffer=self.CHUNK)
 
-        stream.stop_stream()
-        stream.close()
-        speaker_stream.stop_stream()
-        speaker_stream.close()
-        p.terminate()
+                speaker_stream = p.open(format=pyaudio.paInt16,
+                                            channels=self.CHANNELS,
+                                            rate=self.RATE,
+                                            output=True)
+                
+
+                stream.stop_stream()
+                stream.close()
+                speaker_stream.stop_stream()
+                speaker_stream.close()
+                p.terminate()
+
+
+
+
+                break
+            except (ConnectionRefusedError, socket.timeout):
+                print("olmadi")
+                pass
+
+        # IP adresi bulunduysa, listeye ekleyin
+        
 
     def disconnect(self):
         self.is_running = False  # Gönderim ve ses alma işlemlerini durdur
@@ -337,20 +378,28 @@ class istemci_page(QMainWindow):
     def scan_ip(self):
         
         nm = nmap.PortScanner()
-        nm.scan('192.168.1.0/24', arguments='-sn')
+        nm.scan('192.168.1.0/24', arguments='-p {}'.format(self.PORT))
         hosts = nm.all_hosts()
 
-        print("Ağdaki tüm cihazların IP ve MAC adresleri:")
-        
-        for host in hosts:
-            if 'mac' in nm[host]['addresses']:
-                ip_address = nm[host]['addresses']['ipv4']
-                mac_address = nm[host]['addresses']['mac']
+        server_ip = None  # Sadece socket ile sunucu açan bilgisayarın IP adresi
 
-                item_text = f"{ip_address}    {mac_address}"
-                item = QListWidgetItem(item_text)
-                self.istemci.ip_listesi.addItem(item)
-        
+        for host in hosts:
+            try:
+                server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                server_socket.settimeout(1)
+                server_socket.connect((host, self.PORT))
+                server_socket.close()
+                server_ip = host
+                print(f"Sadece socket ile sunucu açan bilgisayarın IP Adresi: {server_ip}")
+                break
+            except (ConnectionRefusedError, socket.timeout):
+                pass
+
+        # IP adresi bulunduysa, listeye ekleyin
+        if server_ip:
+            itemtext = f"{server_ip}"
+            item = QListWidgetItem(itemtext)
+            self.istemci.ip_listesi.addItem(item)
 
         #self.listbox.insert(tk.END,ip_address+"     "+str(mac_address))
     def item_double_clicked(self, item):
@@ -436,11 +485,6 @@ class istemci_page(QMainWindow):
         else:
             print("Hoparlör seçilmedi. Devam edemiyoruz.")
 
-    """def alinan_hop_byts(self):
-        index_bytes = self.server_socket.recv()  # İhtiyaca göre byte sayısını ayarlayın
-        index = int.from_bytes(index_bytes)
-        print(index)
-        return index"""
 
         
         #self.play_server_output(data)

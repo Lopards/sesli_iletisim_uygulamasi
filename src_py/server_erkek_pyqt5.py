@@ -2,7 +2,6 @@ from PyQt5 import QtCore
 from PyQt5.QtWidgets import *
 from PyQt5.QtWidgets import QWidget
 from src_ui.server_man import Ui_Form
-
 from PyQt5.QtGui import QStandardItem, QStandardItemModel
 
 import socket
@@ -67,6 +66,7 @@ class server_erkek_page(QWidget):
         
         self.hoparlor_liste()
         self.efekt_listele()
+        self.ip_tara()
     
     def efekt_listele(self):
         ses_efektler = ["Erkek", "Kadın", "Çocuk","Yaşlı kadın","Yaşlı adam"]
@@ -91,8 +91,8 @@ class server_erkek_page(QWidget):
         for index,device_name in enumerate(self.output_device_list):
             item = QStandardItem(device_name)
             model.appendRow(item)
-            self.liste = f"{index+1}. hoparlör: {device_name}"
-            #print(liste)
+            liste = f"{index+1}. hoparlör: {device_name}"
+            print(liste)
             
 
         self.server_erkek.hoparlor_lis.setModel(model)
@@ -143,6 +143,7 @@ class server_erkek_page(QWidget):
 
         self.client_socket, address = self.server_socket.accept()
         print(f"* {address} adresinden bir bağlantı alındı.")
+        print("ses göndermek için ilk iönce öğrenci tarafın hoparlörünü seçiniz...")
         time.sleep(1)
         self.hoparlor_liste_al()
        
@@ -252,6 +253,7 @@ class server_erkek_page(QWidget):
                         self.client_socket.close()
                         self.client_socket, address = self.server_socket.accept()
                         print(f"* {address} adresinden yeni bir bağlantı alındı.")
+                        self.yazi_gonder_t()
         
 
          

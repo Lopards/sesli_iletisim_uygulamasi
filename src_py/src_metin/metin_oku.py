@@ -39,6 +39,7 @@ def read__old_man_t(metin):
 def read_old_woman(metin):
         engine = ResponsiveVoice()
         engine = ResponsiveVoice(lang=ResponsiveVoice.TURKISH)
+        
         engine.say(metin, gender=ResponsiveVoice.FEMALE, rate=0.36, pitch=0.28, vol=1)
         
        
@@ -56,3 +57,4 @@ def read_children(metin):
 def read_children_thread(metin):
 
         threading.Thread(target=read_children, args=(metin,)).start()
+
