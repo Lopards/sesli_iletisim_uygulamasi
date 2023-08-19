@@ -11,6 +11,9 @@ import pickle
 from PyQt5.QtGui import QStandardItem, QStandardItemModel
 from src_py.src_metin.metin_oku import *
 
+from PyQt5.QtWidgets import QApplication, QListWidget, QListWidgetItem, QColorDialog, QPushButton, QVBoxLayout, QWidget
+from PyQt5.QtGui import QColor, QBrush
+
 class istemci_page(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
@@ -55,6 +58,7 @@ class istemci_page(QMainWindow):
         self.istemci.ip_listesi.itemDoubleClicked.connect(self.item_double_clicked)
         
         self.ip_listesini_comboboxa_ekle()
+
         #self.scan_ip()
 
 
@@ -378,12 +382,11 @@ class istemci_page(QMainWindow):
        
 
     def scan_ip(self):
-        
         nm = nmap.PortScanner()
         nm.scan('192.168.1.0/24', arguments='-sn')
         hosts = nm.all_hosts()
         print("Ağdaki tüm cihazların IP ve MAC adresleri:")
-        
+            
         for host in hosts:
             if 'mac' in nm[host]['addresses']:
                 ip_address = nm[host]['addresses']['ipv4']
@@ -391,6 +394,27 @@ class istemci_page(QMainWindow):
                 item_text = f"{ip_address}    {mac_address}"
                 item = QListWidgetItem(item_text)
                 self.istemci.ip_listesi.addItem(item)
+            
+        with open(self.ip_file, "r") as f:
+            ip_addresses_from_file = [line.strip() for line in f]
+
+        for i in range(self.istemci.ip_listesi.count()):
+            item = self.istemci.ip_listesi.item(i)
+            if item is not None:
+                ip_from_list = item.text().split()[0]
+                if item is not None and item.text().split()[0] == self.istemci.ip_combobox.currentText():
+                    brush_background = QBrush(QColor("green"))
+                    brush_foreground = QBrush(QColor("white"))
+                    item.setBackground(brush_background)
+                    item.setForeground(brush_foreground)
+                elif ip_from_list in ip_addresses_from_file:
+                    brush_background = QBrush(QColor("blue"))
+                    brush_foreground = QBrush(QColor("white"))
+                    item.setBackground(brush_background)
+                    item.setForeground(brush_foreground)
+                
+
+
 
     def connect_to_server_Manuel(self):
         #combobox'daki seçilen ip adresini Host'a ata
