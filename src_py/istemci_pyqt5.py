@@ -289,8 +289,12 @@ class istemci_page(QMainWindow):
         
         
     def connect_to_server_Automatic(self):
+        ip_address = socket.gethostbyname(socket.gethostname())
+
+        # IP adresinin ilk üç bölümünü alarak IP aralığı oluştur
+        ip_range = '.'.join(ip_address.split('.')[:3]) + '.0/24' # bu güncelleme ile ip adres kodu değişse de ip taraması yapılabiecek
         nm = nmap.PortScanner()
-        nm.scan('192.168.1.0/24', arguments='-p {}'.format(self.PORT))
+        nm.scan(ip_range, arguments='-p {}'.format(self.PORT))
         hosts = nm.all_hosts()
         
         server_ip = None  # Sadece socket ile sunucu açan bilgisayarın IP adresi
@@ -382,8 +386,13 @@ class istemci_page(QMainWindow):
        
 
     def scan_ip(self):
+
+        ip_address = socket.gethostbyname(socket.gethostname())
+
+        # IP adresinin ilk üç bölümünü alarak IP aralığı oluştur
+        ip_range = '.'.join(ip_address.split('.')[:3]) + '.0/24' # bu güncelleme ile ip adres kodu değişse de ip taraması yapılabiecek
         nm = nmap.PortScanner()
-        nm.scan('192.168.1.0/24', arguments='-sn')
+        nm.scan(ip_range, arguments='-sn')
         hosts = nm.all_hosts()
         print("Ağdaki tüm cihazların IP ve MAC adresleri:")
             
@@ -408,7 +417,7 @@ class istemci_page(QMainWindow):
                     item.setBackground(brush_background)
                     item.setForeground(brush_foreground)
                 elif ip_from_list in ip_addresses_from_file:
-                    brush_background = QBrush(QColor("blue"))
+                    brush_background = QBrush(QColor("#fffff"))
                     brush_foreground = QBrush(QColor("white"))
                     item.setBackground(brush_background)
                     item.setForeground(brush_foreground)
@@ -418,6 +427,7 @@ class istemci_page(QMainWindow):
 
     def connect_to_server_Manuel(self):
         #combobox'daki seçilen ip adresini Host'a ata
+        #manuel bağlanma başlatıldı.
         selected_ip = self.istemci.ip_combobox.currentText()
         self.HOST = selected_ip
         print("{} - bağlanılmaya çalışıyor".format(self.HOST))
