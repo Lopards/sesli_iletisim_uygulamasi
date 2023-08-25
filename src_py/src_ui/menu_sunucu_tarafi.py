@@ -13,14 +13,14 @@ class MyWindow(QMainWindow):
        
 
     def initUI(self):
-        self.setWindowTitle("Menü Örneği")
+        self.setWindowTitle("Doktor - Menü")
         self.setGeometry(100, 100, 400, 300)
 
         # Menü oluşturma
         menubar = self.menuBar()
         menu = menubar.addMenu("Seçenekler")
 
-        # Menü seçenekleri oluşturma
+        #Burada menu seçeneklerini oluşturuyoruz
         ses_islemleri = QAction("ses işlemleri", self)
         ses_islemleri.triggered.connect(self.ses_islemleri)
         menu.addAction(ses_islemleri)
@@ -51,7 +51,6 @@ class MyWindow(QMainWindow):
             widget = self.layout.itemAt(i).widget()
             if widget:
                 widget.deleteLater()
-
     # server_erkek_page sınıfından bir nesne oluştur
         server_erkek = server_erkek_page()
         
@@ -83,8 +82,9 @@ class MyWindow(QMainWindow):
         
         # Oluşturulan nesneyi mevcut pencerenin içeriği olarak ayarla
         self.layout.addWidget(sunucu)
-if __name__ == "__main__":
+"""if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = MyWindow()
     window.show()
     sys.exit(app.exec_())
+"""

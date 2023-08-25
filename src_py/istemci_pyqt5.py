@@ -63,6 +63,10 @@ class istemci_page(QMainWindow):
 
 
     def receive_text(self):
+        """
+            Metin göndermek için ayrı bir socket bağlantısı kuruyorum.
+            Bunun sebebi ses verileriyle metin verilerinin birbirleriyle karışması ve istenmedik sorunlara yol açmasıydı.
+        """       
         metin_flag = False
         try:
             if not metin_flag:
@@ -76,26 +80,19 @@ class istemci_page(QMainWindow):
 
         while True:
             try:
-                data = server_socket_text.recv(1024)
+                data = server_socket_text.recv(1024) #gelen metin verisini 'data' ya eşitle
                 
 
-                metin = data.decode("utf-8")
+                metin = data.decode("utf-8") #metin verisini utf-8 'e çevir. Bu türkçe harflerin doğru çıkması için
                 
                 self.istemci.metin_yeri.insertPlainText(metin+". ")
-                alinan_index_bytes = server_socket_text.recv(10)  # 10 byte olarak gelen veriyi al
-                alinan_index = int.from_bytes(alinan_index_bytes, byteorder="big")
-                #self.alinan_index_bytes = server_socket_text.recv(10)
-
-                #metin = self.istemci.metin_yeri.toPlainText()
-                print(alinan_index)
+                alinan_index_bytes = server_socket_text.recv(10)  # 10 byte olarak gelen efekt verisini al 
+                alinan_index = int.from_bytes(alinan_index_bytes, byteorder="big") # alınan baytı tam sayıya çevir.
                 
-                # alınan_index değeri; sunucu tarafından gelen efekt seçimidir. 0 = erkek, 1 = kadın .....
+                # alınan_index değeri; sunucu tarafından gelen efekt seçimidir. 0 = erkek, 1 = kadın .....  ve efekte göre gelen metni okut.
                 if alinan_index == 0:
                     
-                    read_man(metin)
-                    
-                    
-                    #self.istemci.metin_yeri.clear()    
+                    read_man(metin)  
 
                 elif alinan_index ==1:
                     read_text__woman_thread(metin)
@@ -111,9 +108,6 @@ class istemci_page(QMainWindow):
                 
                 
                 
-                
-
-
             except ConnectionResetError:
                 if not metin_flag:
                     server_socket_text = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -261,7 +255,7 @@ class istemci_page(QMainWindow):
             listele=f"{index+1}.Hoparlor: {hoparlor}"
             print(listele)
 
-    def hoparlor_liste(self):
+    def hoparlor_liste(self): # cihazın hoparlör listesini server bilgisayara pickle ile yolla 
         p = pyaudio.PyAudio()
 
         self.output_device_list = []
@@ -270,7 +264,7 @@ class istemci_page(QMainWindow):
             if device_info["maxOutputChannels"] > 0:
                 device_name = device_info["name"]
                 self.output_device_list.append(device_name)
-                if len(self.output_device_list) == 6:
+                if len(self.output_device_list) == 8:
                     break
 
         model = QStandardItemModel()
@@ -288,7 +282,7 @@ class istemci_page(QMainWindow):
 
         
         
-    def connect_to_server_Automatic(self):
+    def connect_to_server_Automatic(self):  # Bu fonksiyon aktif olduğunda socket ile açılan servera otomatik olarak bağlanır. 
         ip_address = socket.gethostbyname(socket.gethostname())
 
         # IP adresinin ilk üç bölümünü alarak IP aralığı oluştur
@@ -302,7 +296,6 @@ class istemci_page(QMainWindow):
         for host in hosts:
             try:
                 self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                self.server_socket.settimeout(3)
                 #self.server_socket.settimeout(1)
                 
                 server_ip = host
@@ -371,7 +364,10 @@ class istemci_page(QMainWindow):
         
 
     def disconnect(self):
-        self.is_running = False  # Gönderim ve ses alma işlemlerini durdur
+        """
+        ses gönderim ve ses alım işlemlerini durdur.
+        Bağlantıları kapat"""
+        self.is_running = False  
         self.is_running_recv = False
         self.contunie = False
 
@@ -385,8 +381,8 @@ class istemci_page(QMainWindow):
                 pass
        
 
-    def scan_ip(self):
-
+    def scan_ip(self):  # çevredeki diğer cihazların ip numaralarını listeler
+        
         ip_address = socket.gethostbyname(socket.gethostname())
 
         # IP adresinin ilk üç bölümünü alarak IP aralığı oluştur
@@ -403,6 +399,10 @@ class istemci_page(QMainWindow):
                 item_text = f"{ip_address}    {mac_address}"
                 item = QListWidgetItem(item_text)
                 self.istemci.ip_listesi.addItem(item)
+
+        """
+        Eğer listedeki ip numaralarla daha önce bağlantı kurulduysa mavi renge
+        eğer listedeki ip numarası en son bağlanan ip numarasına eşitse yeşi renge boyancaktır.""" 
             
         with open(self.ip_file, "r") as f:
             ip_addresses_from_file = [line.strip() for line in f]
@@ -417,7 +417,7 @@ class istemci_page(QMainWindow):
                     item.setBackground(brush_background)
                     item.setForeground(brush_foreground)
                 elif ip_from_list in ip_addresses_from_file:
-                    brush_background = QBrush(QColor("#fffff"))
+                    brush_background = QBrush(QColor("#1874cd"))
                     brush_foreground = QBrush(QColor("white"))
                     item.setBackground(brush_background)
                     item.setForeground(brush_foreground)
@@ -426,6 +426,7 @@ class istemci_page(QMainWindow):
 
 
     def connect_to_server_Manuel(self):
+        # combobox da seçilen ip numarasına kullanıcı isterse "manuel bağlan" tuşu iele bağlanılır...
         #combobox'daki seçilen ip adresini Host'a ata
         #manuel bağlanma başlatıldı.
         selected_ip = self.istemci.ip_combobox.currentText()

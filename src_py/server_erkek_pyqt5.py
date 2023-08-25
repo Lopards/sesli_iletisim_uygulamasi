@@ -69,6 +69,7 @@ class server_erkek_page(QWidget):
         self.ip_tara()
     
     def efekt_listele(self):
+        #Metin Gönderme sırasında seçilecek efektler listeleniyor.
         ses_efektler = ["Erkek", "Kadın", "Çocuk","Yaşlı kadın","Yaşlı adam"]
 
         for efekt in ses_efektler:
@@ -76,6 +77,7 @@ class server_erkek_page(QWidget):
 
 
     def hoparlor_liste(self):
+        #kullanılan cihazın hoparlör listesi; arayüzde bir Listeye ekleniyor 
         p = pyaudio.PyAudio()
 
         self.output_device_list = []
@@ -99,7 +101,7 @@ class server_erkek_page(QWidget):
         
         #################******######################
     def ip_tara(self):
-        #  local IP adresini alıyoruz
+        #  kullanılan cihazın local IP adresini alıyoruz
         local_ip = socket.gethostbyname(socket.gethostname())
         self.server_erkek.ip_adres.setText(local_ip)
         
@@ -108,7 +110,7 @@ class server_erkek_page(QWidget):
         #################******######################         
 
     def hoparlor_liste_al(self):
-        #öğrenci tarafından gelen hoparlor listesini arayüze aktar
+        #öğrenci tarafından gelen hoparlor listesini al ve arayüzdeki listeye aktar
         hoparlor_liste_str = self.client_socket.recv(4016)
         hoparlor_liste = pickle.loads(hoparlor_liste_str)
 
@@ -119,20 +121,20 @@ class server_erkek_page(QWidget):
 
         self.server_erkek.ogrenci_hoparlor_liste.setModel(model)
         #################******######################
-        #         
+               
     def ogr_hoparlor_sec(self):
+        #Seç butonu ile ögrenci hoparlörünü seç ve seçilen indexi istemciye yolla 
         selected_efect = self.server_erkek.ogrenci_hoparlor_liste.selectedIndexes()
         selected_row = selected_efect[0].row()  # İndexin ilk elemanını al
         selected_efect_bytes = selected_row.to_bytes(10, byteorder="big")  # İndexi 10 byte olarak gönder
         self.client_socket.send(selected_efect_bytes)
-        print(selected_efect_bytes)
-
-        #self.client_socket.send(bytes(output_device_index))
 
 
+        #################******######################
 
     def connect_to_server(self):
-        selected_ip = self.server_erkek.ip_adres.text()
+        #bağlantılara açık olmaya yarıyor
+        selected_ip = self.server_erkek.ip_adres.text() 
         self.HOST = selected_ip
         
 
@@ -141,17 +143,20 @@ class server_erkek_page(QWidget):
         self.server_socket.listen(1)
         print(f"* Bağlantı için {self.HOST}:{self.PORT} dinleniyor...")
 
-        self.client_socket, address = self.server_socket.accept()
+        self.client_socket, address = self.server_socket.accept()#gelen isteği kabul et
         print(f"* {address} adresinden bir bağlantı alındı.")
         print("ses göndermek için ilk iönce öğrenci tarafın hoparlörünü seçiniz...")
+        #burada ara satırlara time.sleep(1) koydum çünkü tek thread ile yaptığımdan aynı anda yapamıyordu, başka thread koymak istemedim.
         time.sleep(1)
         self.hoparlor_liste_al()
-       
         self.yazi_gonder_t()
+
         time.sleep(1)
         #self.start()
+
         time.sleep(1)
         self.start_get_sound()
+        
         time.sleep(1)
         self.get_sound_contunie()
         
@@ -179,12 +184,16 @@ class server_erkek_page(QWidget):
         
 
     def connect_to_server_thread(self):
+         #connect_to_server'i thread ile başlat
          threading.Thread(target=self.connect_to_server).start()
 
             #################******######################
     def disconnect(self):
-            
-        self.is_running = False  # Gönderim ve ses alma işlemlerini durdur
+        """
+        Ses Gönderim ve ses alma işlemlerini durdur
+        ve Bağlantıları kapat
+        """
+        self.is_running = False  
         self.is_running_recv = False
         self.contunie = False
         
@@ -218,35 +227,33 @@ class server_erkek_page(QWidget):
                         input=True,
                         frames_per_buffer=self.CHUNK)
         
-        Esik_deger = 30
+        Esik_deger = 80 # mikrofon hassasiyetini belirleyecek değer
         
         while self.is_running:
-            self.connect()
+            self.connect()#internet bağlantısı kontrolü yapılıyor, internet yoksa uyarı veriyor, tekrar bağlanırsada uyarı veriyor.
             
             
-            data = stream.read(self.CHUNK)
-            audio_data = np.frombuffer(data, dtype=np.int16)
+            data = stream.read(self.CHUNK) # mikrofondan gelen verileri oku
+            audio_data = np.frombuffer(data, dtype=np.int16) #okunan verileri numpy dizisine donuştur
             if np.abs(audio_data).mean() > Esik_deger: # mikrofona gelen ses verilerin MUTLAK değerinin ortalamasını alarak ses şiddetini buluyoruz. ortalama, eşik değerinden yüksekse ses iletim devam ediyor.
                 mikrofon = True
                 
             else:
                 mikrofon  = False
-                
-            
             
             try:
                     if self.is_running and mikrofon:
                     
-                        converted_data = signal.resample(audio_data, int(len(audio_data) * self.PITCH_SHIFT_FACTOR)) * 1.4
-                        converted_data = converted_data.astype(np.int16)
-                        converted_data_bytes = converted_data.tobytes()
-                        self.client_socket.sendall(converted_data_bytes)
+                        converted_data = signal.resample(audio_data, int(len(audio_data) * self.PITCH_SHIFT_FACTOR)) #PITCH_SHIFT_FACTOR ile sesin örnekleme sayısını değiştir
+                        converted_data = converted_data.astype(np.int16)#yeniden işlenen ses verisini int16 tam sayısına dönüştür
+                        converted_data_bytes = converted_data.tobytes()#ses verisini baytlara donuştur
+                        self.client_socket.sendall(converted_data_bytes) #istemciye yolla
 
                     if not self.is_running:
                             return
           
             
-            except Exception as e:
+            except Exception as e:  #Herhangi bir hata olursa programı tekrar açmak zorunda kalmadan bağlantıları tekrar aç
                     if self.client_socket is not None and self.contunie == True:
                         print("bir hata oldu : ",e)
                         print("yeniden bağlanılmaya çalışılıyor...")
@@ -256,7 +263,7 @@ class server_erkek_page(QWidget):
                         self.yazi_gonder_t()
         
 
-         
+         #işlem sonunda tüm bağlantıları durdur ve kapat
         stream.stop_stream()
         stream.close()
         self.client_socket.close()
@@ -287,8 +294,8 @@ class server_erkek_page(QWidget):
                 if not data:
                     break
                 if self.Event.is_set() and self.contunie:
-                    
-                        self.play_server_output(data)
+                
+                        self.play_server_output(data) #ses verisini play_server_output fonksiyonuna gönder. bu fonksiyon sayesinde seçilen hoparlöre ses gönderilecek
 
             except Exception as e:
                 if self.client_socket is not None and self.contunie:
@@ -338,7 +345,13 @@ class server_erkek_page(QWidget):
 
 
                              ##### ********** ###### 
-    def set_output_stream(self, output_device):
+    def set_output_stream(self, output_device):  
+        """
+        'play_button_clicked' fonskiyonun gönderdiği hoparlör indexini 'output_device' değişkeni ile alır 
+        ve pyaudio da hoparlör indexini ayarlar.
+        
+        Eğer seçilen hoparlör aktif değilse index none olarak dönecektir ve ekrana uyarı basacaktır.
+        """
         
         p = pyaudio.PyAudio()
         try:
@@ -371,7 +384,8 @@ class server_erkek_page(QWidget):
             print("Hoparlör seçiniz...")
             
                         ##### ********** ######
-    def select_output_device(self):
+
+    def select_output_device(self):     #listede seçilen hoparlörün indexini al ve return et. return edilen indexi 'play_button_clicked' fonskiyonu alacak
         device_indexes = self.server_erkek.hoparlor_lis.selectedIndexes()
         if device_indexes:
             selected_row = device_indexes[0].row()
@@ -379,11 +393,11 @@ class server_erkek_page(QWidget):
            # print(output_device_index)
             return output_device_index
         else:
-            # Eğer herhangi bir öğe seçilmemişse, None döndür
+            # Eğer herhangi bir öğe seçilmemişse veya listede yanlış değer seçilmişse , None döndür
             return None
 
 
-    def play_button_clicked(self):
+    def play_button_clicked(self):  #Hoparlör listesinde seçilen hoparlörü 'set_output_stream' fonskyinonuna gönder.
         
         output_device = self.select_output_device()
         self.set_output_stream(output_device)
@@ -392,12 +406,11 @@ class server_erkek_page(QWidget):
 
 
 
-    def connect(self):
+    def connect(self): #internet bağlantısını kontrol eder ve ekrana uyarı basar.
         
 
         while True:
             try:
-                # www.google.com adresine bağlanmayı dene (80 ve 443 portları genellikle açıktır)
                 socket.gethostbyname("www.google.com")
                 if not self.internet_baglantisi:
                     print("İnternet bağlantısı aktif.")
@@ -428,7 +441,7 @@ class server_erkek_page(QWidget):
                             text = r.recognize_google(audio, language="tr-TR")
                             if text:
                                 
-                                self.server_erkek.metin_yeri.insertPlainText(text + ". ")
+                                self.server_erkek.metin_yeri.insertPlainText(text + ". ") #mikrosondan gelen cümleyi metin alanına aktar ve sonuna '.' koy
                     except sr.UnknownValueError:
                             print("Ses anlaşılamadı.")
                     except sr.RequestError as e:
@@ -438,18 +451,21 @@ class server_erkek_page(QWidget):
 
             #################******######################
     def baslat_text(self):
-        
+        #sesi_anlik_yaziya_cevir fonks. başlat
             self.flag = True
             threading.Thread(target=self.sesi_anlik_yaziya_cevir).start()
 
             #################******######################        
 
     def stop_speech_to_text(self):
-        #sei yazıya dökme durdur
+        #sesi_anlik_yaziya_cevir fonks. durdur
         self.flag = False
             #################******######################   
     def yazi_gonder(self):
-        
+            """
+            Metin göndermek için ayrı bir socket bağlantısı kuruyorum.
+            Bunun sebebi ses verileriyle metin verilerinin birbirleriyle karışması ve istenmedik sorunlara yol açmasıydı.
+            """       
             try:
                 if not self.metin_flag:
                     server_socket_text = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -462,17 +478,17 @@ class server_erkek_page(QWidget):
 
                     self.metin_flag = True  # Bayrağı True olarak ayarla, böylece tekrardan bağlantı kurmuyor
 
-                metin = self.server_erkek.metin_yeri.toPlainText().strip()
+                metin = self.server_erkek.metin_yeri.toPlainText().strip() #metin alanındaki yazıları alıyoruz
                 
                 
 
                 if metin:
                     # Metin verisini ikinci soket üzerinden gönder
-                    self.client_socket_text.send(bytes(metin, "utf-8"))
+                    self.client_socket_text.send(bytes(metin, "utf-8")) #metni utf-8 koduyla gönderiyoruz
                     self.server_erkek.metin_yeri.clear()
 
                     selected_efect = self.server_erkek.efek_combobox.currentIndex()
-                    selected_efect_bytes = selected_efect.to_bytes(10, byteorder="big")  # İndexi 10 byte olarak gönder
+                    selected_efect_bytes = selected_efect.to_bytes(10, byteorder="big")  # seçilen efekt indexini 10 byte olarak gönder
                     self.client_socket_text.send(selected_efect_bytes)
                     print("Metin gönderildi:", metin)
             except Exception as e:
