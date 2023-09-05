@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f2f2f2;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+    }
+
+    form {
+        background-color: #4a91ee;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        width: 300px;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: bold;
+    }
+
+    input {
+        width: 100%;
+        padding: 8px;
+        margin-bottom: 16px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    button {
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        padding: 10px 20px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+    button:hover {
+        background-color: #0056b3;
+    }
+</style>
+<title>Kayıt Formu</title>
+</head>
+<body>
+    <form method="POST" action="/login.html">
+        <label for="name">Adınız:</label>
+        <input type="text" id="name" name="name" required>
+        <label for="password">Şifre:</label>
+        <input type="password" id="password" name="password" required>
+        <button type="submit">giris yap</button>
+        {% if msg %}
+        <p style="color: red;">giris Başarılı!</p>
+        {% endif %}
+    </form>
+</body>
+</html>
