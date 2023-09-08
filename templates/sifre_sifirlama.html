@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Şifre Sıfırlama</title>
+</head>
+<body>
+    <h2>Şifre Sıfırlama</h2>
+    <form method="POST">
+        <label for="new_password">Yeni Şifre:</label>
+        <input type="password" id="new_password" name="new_password" required>
+        <br>
+        <input type="submit" value="Şifre Sıfırla">
+    </form>
+</body>
+</html>
