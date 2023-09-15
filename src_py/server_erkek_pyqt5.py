@@ -3,7 +3,8 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtWidgets import QWidget
 from src_py.src_ui.server_man import Ui_Form
 from PyQt5.QtGui import QStandardItem, QStandardItemModel
-
+import atexit #program aniden kapansa bile 69. satır sayesinde sql database durum = çıkıldı yapılıyor.
+import mysql.connector#sql bağlantısı
 import socket
 import pyaudio
 import numpy as np
@@ -61,12 +62,12 @@ class server_erkek_page(QWidget):
         self.ip_file = "ip_addresses.txt"
         
         self.stop_event = threading.Event()
-
-        
-        
+       
         self.hoparlor_liste()
         self.efekt_listele()
         self.ip_tara()
+        atexit.register(self.disconnect)
+         
     
     def efekt_listele(self):
         #Metin Gönderme sırasında seçilecek efektler listeleniyor.
@@ -101,11 +102,12 @@ class server_erkek_page(QWidget):
         
         #################******######################
     def ip_tara(self):
+
         #  kullanılan cihazın local IP adresini alıyoruz
         local_ip = socket.gethostbyname(socket.gethostname())
         self.server_erkek.ip_adres.setText(local_ip)
-        
 
+        
 
         #################******######################         
 
@@ -193,6 +195,20 @@ class server_erkek_page(QWidget):
         Ses Gönderim ve ses alma işlemlerini durdur
         ve Bağlantıları kapat
         """
+
+        local_ip = socket.gethostbyname(socket.gethostname())
+        connection = mysql.connector.connect(
+                host="awsveri.cwguyhuwi5xu.eu-north-1.rds.amazonaws.com",
+                user="rise",
+                password="Osmaniye12!",
+                database="kullanici_veri"
+            )
+        cursor = connection.cursor()
+
+        cursor.execute('UPDATE veriler SET  durum = "çıkıldı" WHERE ip_adresi = %s',
+                            (local_ip,))  
+        connection.commit()
+        connection.close() #bağlantıyı kapat
         self.is_running = False  
         self.is_running_recv = False
         self.contunie = False

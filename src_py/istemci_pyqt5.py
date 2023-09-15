@@ -10,10 +10,9 @@ import time
 import pickle
 from PyQt5.QtGui import QStandardItem, QStandardItemModel
 from src_py.src_metin.metin_oku import *
-
-from PyQt5.QtWidgets import QApplication, QListWidget, QListWidgetItem, QColorDialog, QPushButton, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import QListWidgetItem 
 from PyQt5.QtGui import QColor, QBrush
-
+import requests
 class istemci_page(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
@@ -385,20 +384,41 @@ class istemci_page(QMainWindow):
         
         ip_address = socket.gethostbyname(socket.gethostname())
 
-        # IP adresinin ilk üç bölümünü alarak IP aralığı oluştur
-        ip_range = '.'.join(ip_address.split('.')[:3]) + '.0/24' # bu güncelleme ile ip adres kodu değişse de ip taraması yapılabiecek
-        nm = nmap.PortScanner()
-        nm.scan(ip_range, arguments='-sn')
-        hosts = nm.all_hosts()
-        print("Ağdaki tüm cihazların IP ve MAC adresleri:")
+        from bs4 import BeautifulSoup
+
+        url = "https://mesajlasma-41995f5c6231.herokuapp.com/deneme.html"
+
+        response = requests.get(url)
+
+        if response.status_code == 200:
+            # Web sayfası başarılı bir şekilde alındı.
+            # sayfa içeriğini işle
+            soup = BeautifulSoup(response.text, 'html.parser')
+            ip_list = []
+
+            # Tüm <li> etiketlerini bul
+            for li in soup.find_all('li'):
+                ip = li.text.strip()  # <li> içeriğini al ve boşlukları temizle
+                ip_list.append(ip)
+
+            # IP adreslerini yazdır
+            print("Bağlı IP Adresleri:")
+            for ip in ip_list:
+                item_text = f"{ip}"
+                item = QListWidgetItem(item_text)
+                self.istemci.ip_listesi.addItem(item)
+                
+        else:
+            print("Sayfa alınamadı. HTTP durum kodu:", response.status_code)
+
             
-        for host in hosts:
+        """for host in hosts:
             if 'mac' in nm[host]['addresses']:
                 ip_address = nm[host]['addresses']['ipv4']
                 mac_address = nm[host]['addresses']['mac']
                 item_text = f"{ip_address}    {mac_address}"
                 item = QListWidgetItem(item_text)
-                self.istemci.ip_listesi.addItem(item)
+                self.istemci.ip_listesi.addItem(item)"""
 
         """
         Eğer listedeki ip numaralarla daha önce bağlantı kurulduysa mavi renge

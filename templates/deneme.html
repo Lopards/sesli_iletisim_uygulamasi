@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bağlı IP Adresleri</title>
+</head>
+<body>
+    <h1>Bağlı IP Adresleri:</h1>
+    <ul>
+        {% for ip in connected_ips %}
+            <li>{{ ip }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

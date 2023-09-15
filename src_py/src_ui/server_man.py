@@ -15,7 +15,8 @@ class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName("Form")
         Form.resize(1040, 771)
-        Form.setMinimumSize(QtCore.QSize(1040, 750))
+        Form.setMinimumSize(QtCore.QSize(1040, 550))
+        Form.setFocusPolicy(QtCore.Qt.TabFocus)
         self.label_3 = QtWidgets.QLabel(Form)
         self.label_3.setGeometry(QtCore.QRect(760, 110, 161, 16))
         self.label_3.setObjectName("label_3")
@@ -97,6 +98,13 @@ class Ui_Form(object):
         self.ogrenci_hoparlor_sec = QtWidgets.QPushButton(Form)
         self.ogrenci_hoparlor_sec.setGeometry(QtCore.QRect(140, 700, 93, 28))
         self.ogrenci_hoparlor_sec.setObjectName("ogrenci_hoparlor_sec")
+        self.label_6 = QtWidgets.QLabel(Form)
+        self.label_6.setGeometry(QtCore.QRect(900, 620, 81, 16))
+        self.label_6.setObjectName("label_6")
+        self.kullanici_isim = QtWidgets.QLabel(Form)
+        self.kullanici_isim.setGeometry(QtCore.QRect(870, 650, 121, 31))
+        self.kullanici_isim.setText("")
+        self.kullanici_isim.setObjectName("kullanici_isim")
 
         self.retranslateUi(Form)
         QtCore.QMetaObject.connectSlotsByName(Form)
@@ -121,6 +129,7 @@ class Ui_Form(object):
         self.baglantiyi_kes_buton.setText(_translate("Form", "Baglantıyı kes"))
         self.label_5.setText(_translate("Form", "Öğrenci tarafının hoparlörünü seçin"))
         self.ogrenci_hoparlor_sec.setText(_translate("Form", "Seç"))
+        self.label_6.setText(_translate("Form", "Kullanici Adı"))
 
 
 if __name__ == "__main__":
