@@ -19,7 +19,8 @@ class kayit(QMainWindow):
         self.pencere = login_page()
         self.yanlis_sifre_sayac = 0
 
-    def verify_login(self):       
+    def verify_login(self):     
+        ip_address = socket.gethostbyname(socket.gethostname())  
         try:
             connection = mysql.connector.connect(
                 host="awsveri.cwguyhuwi5xu.eu-north-1.rds.amazonaws.com",
@@ -28,13 +29,19 @@ class kayit(QMainWindow):
                 database="kullanici_veri"
             )
             cursor = connection.cursor()
-            query = "SELECT * FROM veriler WHERE kullanici_ad = %s AND sifre = %s"
+            query = "SELECT * FROM veriler WHERE kullanici_ad = %s AND sifre = %s AND durum=%s"
+            
             ID = self.kayit_sayfasi.kullanici_ad_yeri.text()
             sifre = self.kayit_sayfasi.sifre_yeri.text()
-            values = (ID, sifre)
+            durum = 'çıkıldı'
+            values = (ID, sifre,durum)
+            """durum = "SELECT * FROM veriler WHERE kullanici_ad = %s "
+            values()"""
 
             cursor.execute(query, values)
+            #cursor.execute(durum,ip_address)
             user = cursor.fetchone()
+            #durum = cursor.fetchone()
 
             if user:
                 self.yanlis_sifre_sayac = 0
