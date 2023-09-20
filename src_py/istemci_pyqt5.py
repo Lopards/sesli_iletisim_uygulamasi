@@ -410,15 +410,24 @@ class istemci_page(QMainWindow):
                 
         else:
             print("Sayfa alınamadı. HTTP durum kodu:", response.status_code)
+        
+        ip_address = socket.gethostbyname(socket.gethostname())
+
+        # IP adresinin ilk üç bölümünü alarak IP aralığı oluştur
+        ip_range = '.'.join(ip_address.split('.')[:3]) + '.0/24' # bu güncelleme ile ip adres kodu değişse de ip taraması yapılabiecek
+        nm = nmap.PortScanner()
+        nm.scan(ip_range, arguments='-sn')
+        hosts = nm.all_hosts()
+        print("Ağdaki tüm cihazların IP ve MAC adresleri:")
 
             
-        """for host in hosts:
+        for host in hosts:
             if 'mac' in nm[host]['addresses']:
                 ip_address = nm[host]['addresses']['ipv4']
                 mac_address = nm[host]['addresses']['mac']
                 item_text = f"{ip_address}    {mac_address}"
                 item = QListWidgetItem(item_text)
-                self.istemci.ip_listesi.addItem(item)"""
+                self.istemci.ip_listesi.addItem(item)
 
         """
         Eğer listedeki ip numaralarla daha önce bağlantı kurulduysa mavi renge
@@ -449,47 +458,50 @@ class istemci_page(QMainWindow):
         # combobox da seçilen ip numarasına kullanıcı isterse "manuel bağlan" tuşu iele bağlanılır...
         #combobox'daki seçilen ip adresini Host'a ata
         #manuel bağlanma başlatıldı.
-        selected_ip = self.istemci.ip_combobox.currentText()
-        self.HOST = selected_ip
-        print("{} - bağlanılmaya çalışıyor".format(self.HOST))
-        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server_socket.connect((self.HOST, self.PORT))
-        print(f"Bağlantı sağlandı: {self.HOST}")
-        
-        time.sleep(1)
-        #self.server_hoparlor()
-        self.hoparlor_liste()
-    # Hoparlör listesini terminalde göster
+        try:
+            selected_ip = self.istemci.ip_combobox.currentText()
+            self.HOST = selected_ip
+            print("{} - bağlanılmaya çalışıyor".format(self.HOST))
+            self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.server_socket.connect((self.HOST, self.PORT))
+            print(f"Bağlantı sağlandı: {self.HOST}")
+            
+            time.sleep(1)
+            #self.server_hoparlor()
+            self.hoparlor_liste()
+        # Hoparlör listesini terminalde göster
 
-        time.sleep(1)
-        self.receive_text_thread()
+            time.sleep(1)
+            self.receive_text_thread()
 
-        time.sleep(1)
-        self.get_sound()
+            time.sleep(1)
+            self.get_sound()
 
 
-        time.sleep(1)
-        self.get_sound_continue()
-        self.start_communication()
-        time.sleep(1)
-        
-        
-        p = pyaudio.PyAudio()
-        stream = p.open(format=pyaudio.paInt16,
-                            channels=self.CHANNELS,
-                            rate=self.RATE,
-                            input=True,
-                            frames_per_buffer=self.CHUNK)
-        speaker_stream = p.open(format=pyaudio.paInt16,
-                                    channels=self.CHANNELS,
-                                    rate=self.RATE,
-                                    output=True)
-        
-        stream.stop_stream()
-        stream.close()
-        speaker_stream.stop_stream()
-        speaker_stream.close()
-        p.terminate()
+            time.sleep(1)
+            self.get_sound_continue()
+            self.start_communication()
+            time.sleep(1)
+            
+            
+            p = pyaudio.PyAudio()
+            stream = p.open(format=pyaudio.paInt16,
+                                channels=self.CHANNELS,
+                                rate=self.RATE,
+                                input=True,
+                                frames_per_buffer=self.CHUNK)
+            speaker_stream = p.open(format=pyaudio.paInt16,
+                                        channels=self.CHANNELS,
+                                        rate=self.RATE,
+                                        output=True)
+            
+            stream.stop_stream()
+            stream.close()
+            speaker_stream.stop_stream()
+            speaker_stream.close()
+            p.terminate()
+        except socket.error as e:
+            pass
 
 
 
