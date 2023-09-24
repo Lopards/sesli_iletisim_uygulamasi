@@ -382,7 +382,7 @@ class istemci_page(QMainWindow):
        
 
     def scan_ip(self):  # çevredeki diğer cihazların ip numaralarını listeler
-        
+
         ip_address = socket.gethostbyname(socket.gethostname())
 
         # IP adresinin ilk üç bölümünü alarak IP aralığı oluştur
@@ -391,6 +391,7 @@ class istemci_page(QMainWindow):
         nm.scan(ip_range, arguments='-sn')
         hosts = nm.all_hosts()
         print("Ağdaki tüm cihazların IP ve MAC adresleri:")
+
             
         for host in hosts:
             if 'mac' in nm[host]['addresses']:
@@ -421,6 +422,34 @@ class istemci_page(QMainWindow):
                     brush_foreground = QBrush(QColor("white"))
                     item.setBackground(brush_background)
                     item.setForeground(brush_foreground)
+
+        if not item: #eğer local ağda cihaz bulunamadıysa nete bak.  amaç servera
+
+            url = "https://mesajlasma-41995f5c6231.herokuapp.com/deneme.html"
+
+            response = requests.get(url)
+
+            if response.status_code == 200:
+                # Web sayfası başarılı bir şekilde alındı.
+                # sayfa içeriğini işle
+                soup = BeautifulSoup(response.text, 'html.parser')
+                ip_list = []
+
+                # Tüm <li> etiketlerini bul
+                for li in soup.find_all('li'):
+                    ip = li.text.strip()  # <li> içeriğini al ve boşlukları temizle
+                    ip_list.append(ip)
+
+                # IP adreslerini yazdır
+                print("Bağlı IP Adresleri:")
+                for ip in ip_list:
+                    item_text = f"{ip}"
+                    item = QListWidgetItem(item_text)
+                    self.istemci.ip_listesi.addItem(item)
+                    
+            else:
+                print("Sayfa alınamadı. HTTP durum kodu:", response.status_code)
+                
                 
 
 
