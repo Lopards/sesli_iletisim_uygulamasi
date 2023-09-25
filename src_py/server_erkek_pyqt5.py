@@ -147,39 +147,50 @@ class server_erkek_page(QWidget):
 
         self.client_socket, address = self.server_socket.accept()#gelen isteği kabul et
         print(f"* {address} adresinden bir bağlantı alındı.")
-        print("ses göndermek için ilk iönce öğrenci tarafın hoparlörünü seçiniz...")
-        #burada ara satırlara time.sleep(1) koydum çünkü tek thread ile yaptığımdan aynı anda yapamıyordu, başka thread koymak istemedim.
-        time.sleep(1)
-        self.hoparlor_liste_al()
-        self.yazi_gonder_t()
-
-        time.sleep(1)
-        #self.start()
-
-        time.sleep(1)
-        self.start_get_sound()
         
-        time.sleep(1)
-        self.get_sound_contunie()
-        
-        p = pyaudio.PyAudio()
-        stream = p.open(format=pyaudio.paInt16,
-                            channels=self.CHANNELS,
-                            rate=self.RATE,
-                            input=True,
-                            frames_per_buffer=self.CHUNK)
+        excepted_mesaj = "Beklenen_Mesaj"
+        received_mesaj = self.client_socket.recv(1024).decode()
+        if received_mesaj == excepted_mesaj: #mesajlar aynı ise iletişime geçilecek
 
-        speaker_stream = p.open(format=pyaudio.paInt16,
-                                    channels=self.CHANNELS,
-                                    rate=self.RATE,
-                                    output=True)
-        
+            print("ses göndermek için ilk iönce öğrenci tarafın hoparlörünü seçiniz...")
+            #burada ara satırlara time.sleep(1) koydum çünkü tek thread ile yaptığımdan aynı anda yapamıyordu, başka thread koymak istemedim.
+            time.sleep(1)
+            self.hoparlor_liste_al()
+            self.yazi_gonder_t()
 
-        stream.stop_stream()
-        stream.close()
-        speaker_stream.stop_stream()
-        speaker_stream.close()
-        p.terminate()
+            time.sleep(1)
+            #self.start()
+
+            time.sleep(1)
+            self.start_get_sound()
+            
+            time.sleep(1)
+            self.get_sound_contunie()
+            
+            p = pyaudio.PyAudio()
+            stream = p.open(format=pyaudio.paInt16,
+                                channels=self.CHANNELS,
+                                rate=self.RATE,
+                                input=True,
+                                frames_per_buffer=self.CHUNK)
+
+            speaker_stream = p.open(format=pyaudio.paInt16,
+                                        channels=self.CHANNELS,
+                                        rate=self.RATE,
+                                        output=True)
+            
+
+            stream.stop_stream()
+            stream.close()
+            speaker_stream.stop_stream()
+            speaker_stream.close()
+            p.terminate()
+
+            #self.client_socket.close()
+            #self.server_socket.close()
+        else:
+             print("Dikkat, cihazınız tarandı!")
+             self.connect_to_server()
 
         #self.client_socket.close()
         #self.server_socket.close()
@@ -196,19 +207,6 @@ class server_erkek_page(QWidget):
         ve Bağlantıları kapat
         """
 
-        local_ip = socket.gethostbyname(socket.gethostname())
-        connection = mysql.connector.connect(
-                host="awsveri.cwguyhuwi5xu.eu-north-1.rds.amazonaws.com",
-                user="rise",
-                password="Osmaniye12!",
-                database="kullanici_veri"
-            )
-        cursor = connection.cursor()
-
-        cursor.execute('UPDATE veriler SET  durum = "çıkıldı" WHERE ip_adresi = %s',
-                            (local_ip,))  
-        connection.commit()
-        connection.close() #bağlantıyı kapat
         self.is_running = False  
         self.is_running_recv = False
         self.contunie = False
