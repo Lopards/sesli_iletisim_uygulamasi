@@ -105,6 +105,16 @@ class Ui_Form(object):
         self.kullanici_isim.setGeometry(QtCore.QRect(870, 650, 121, 31))
         self.kullanici_isim.setText("")
         self.kullanici_isim.setObjectName("kullanici_isim")
+        self.label_7 = QtWidgets.QLabel(Form)
+        self.label_7.setGeometry(QtCore.QRect(500, 50, 71, 16))
+        self.label_7.setObjectName("label_7")
+        self.oda_kod_yeri = QtWidgets.QLabel(Form)
+        self.oda_kod_yeri.setGeometry(QtCore.QRect(570, 45, 81, 21))
+        self.oda_kod_yeri.setText("")
+        self.oda_kod_yeri.setObjectName("oda_kod_yeri")
+        self.oda_olustur_buton = QtWidgets.QPushButton(Form)
+        self.oda_olustur_buton.setGeometry(QtCore.QRect(680, 40, 93, 28))
+        self.oda_olustur_buton.setObjectName("oda_olustur_buton")
 
         self.retranslateUi(Form)
         QtCore.QMetaObject.connectSlotsByName(Form)
@@ -130,6 +140,8 @@ class Ui_Form(object):
         self.label_5.setText(_translate("Form", "Öğrenci tarafının hoparlörünü seçin"))
         self.ogrenci_hoparlor_sec.setText(_translate("Form", "Seç"))
         self.label_6.setText(_translate("Form", "Kullanici Adı"))
+        self.label_7.setText(_translate("Form", "Oda kodu:"))
+        self.oda_olustur_buton.setText(_translate("Form", "oda oluştur"))
 
 
 if __name__ == "__main__":
