@@ -13,6 +13,10 @@ from src_py.src_metin.metin_oku import *
 from PyQt5.QtWidgets import QListWidgetItem 
 from PyQt5.QtGui import QColor, QBrush
 import requests
+from bs4 import BeautifulSoup
+import socketio
+sio = socketio.Client()
+
 class istemci_page(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
@@ -30,6 +34,7 @@ class istemci_page(QMainWindow):
         self.istemci.ses_al_duraklat.clicked.connect(self.get_sound_stop)
         self.istemci.baglantiyi_kes_buton.clicked.connect(self.disconnect)
         #self.istemci.metin_okuma_buton.clicked.connect(self.metni_oku)
+        self.istemci.odaya_gir_buton.clicked.connect(self.receive_text_thread)
 
 
         self.CHUNK = 512 
@@ -57,8 +62,9 @@ class istemci_page(QMainWindow):
         self.istemci.ip_listesi.itemDoubleClicked.connect(self.item_double_clicked)
         
         self.ip_listesini_comboboxa_ekle()
-
         #self.scan_ip()
+
+
 
 
     def receive_text(self):
@@ -66,62 +72,41 @@ class istemci_page(QMainWindow):
             Metin göndermek için ayrı bir socket bağlantısı kuruyorum.
             Bunun sebebi ses verileriyle metin verilerinin birbirleriyle karışması ve istenmedik sorunlara yol açmasıydı.
         """       
-        metin_flag = False
+
+
+
+        @sio.event
+        def connect():
+            print('Connected to server')
+
+        @sio.on('message')
+        def handle_message(message):
+            if 'message' in message:
+                text = message.get('message', '')  # Mesaj içeriğini al
+                if text == "has entered the room":
+                    pass
+                else:
+                    self.istemci.metin_yeri.insertPlainText(text + '\n')  # Mesajı pyqt5 alanına ekleyin
+            else:
+                print('Received invalid message:', message)
+
+        room = self.istemci.Oda_kodu_yeri.text() 
+        name = "Öğrenci"  # Kullanıcı adınızı buraya girin
+
+        sio.connect('http://192.168.1.84:5000', auth={"name": name, "room": room})
+
         try:
-            if not metin_flag:
-                server_socket_text = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                server_socket_text.connect((self.HOST, self.PORT_TEXT))
-            # self.server_socket,adress = se
-                print(f"Metin için Bağlantı sağlandı: {self.HOST}")
-                metin_flag = True
-        except:
-            print("metin alma işlemi duraksadı.")
+            while True:
+                pass  # Sürekli olarak mesajları dinlemek için döngüyü sürdürün
+        except KeyboardInterrupt:
+            pass  # Ctrl+C ile çıkış yapılabilir
 
-        while True:
-            try:
-                data = server_socket_text.recv(1024) #gelen metin verisini 'data' ya eşitle
-                
+        sio.disconnect()
 
-                metin = data.decode("utf-8") #metin verisini utf-8 'e çevir. Bu türkçe harflerin doğru çıkması için
-                
-                self.istemci.metin_yeri.insertPlainText(metin+". ")
-                alinan_index_bytes = server_socket_text.recv(10)  # 10 byte olarak gelen efekt verisini al 
-                alinan_index = int.from_bytes(alinan_index_bytes, byteorder="big") # alınan baytı tam sayıya çevir.
-                
-                # alınan_index değeri; sunucu tarafından gelen efekt seçimidir. 0 = erkek, 1 = kadın .....  ve efekte göre gelen metni okut.
-                if alinan_index == 0:
-                    
-                    read_man(metin)  
-
-                elif alinan_index ==1:
-                    read_text__woman_thread(metin)
-                    
-                elif alinan_index == 2:
-                    read_children(metin)
-                    
-                elif alinan_index == 3:
-                    read_old_woman(metin)
-
-                elif alinan_index == 4:
-                    read_old_man(metin)
-                
-                
-                
-            except ConnectionResetError:
-                if not metin_flag:
-                    server_socket_text = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                    server_socket_text.connect((self.HOST, self.PORT_TEXT))
-                # self.server_socket,adress = se
-                    print(f"Metin için Bağlantı sağlandı: {self.HOST}")
-                    metin_flag = True
-                break
-        server_socket_text.close()
 
     def receive_text_thread(self):
         ti1 = threading.Thread(target=self.receive_text)
         ti1.start()
-    
-
     
 
        
