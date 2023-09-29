@@ -5,6 +5,7 @@ from src_py.src_ui.server_man import Ui_Form
 from PyQt5.QtGui import QStandardItem, QStandardItemModel
 import atexit #program aniden kapansa bile 69. satır sayesinde sql database durum = çıkıldı yapılıyor.
 import mysql.connector#sql bağlantısı
+import requests
 import socket
 import pyaudio
 import numpy as np
@@ -12,7 +13,12 @@ import threading
 import speech_recognition as sr
 import time
 import pickle
+import random
+import socketio
+from string import ascii_uppercase
 from scipy import signal
+
+sio = socketio.Client()
 class server_erkek_page(QWidget):
     def __init__(self) -> None:
         super().__init__()
@@ -35,6 +41,7 @@ class server_erkek_page(QWidget):
 
         self.server_erkek.hoparlo_sec_button.clicked.connect(self.play_button_clicked)
         self.server_erkek.ogrenci_hoparlor_sec.clicked.connect(self.ogr_hoparlor_sec)
+        self.server_erkek.oda_olustur_buton.clicked.connect(self.enter_room)
         self.HOST = None
         self.PORT = 12345
         self.PORT_TEXT =12346
@@ -60,15 +67,49 @@ class server_erkek_page(QWidget):
         self.output_stream = None
         self.speaker_stream = None
         self.ip_file = "ip_addresses.txt"
-        
+        self.room_code = ""
         self.stop_event = threading.Event()
-       
+        
         self.hoparlor_liste()
         self.efekt_listele()
         self.ip_tara()
         atexit.register(self.disconnect)
          
+    def oda_ismi(self):
+        rooms = {}
+        while True:
+
+            for _ in range(5):
+                self.room_code += random.choice(ascii_uppercase)
+
+            if self.room_code not in rooms:
+                break
+        self.server_erkek.oda_kod_yeri.setText(self.room_code)        
+        return self.room_code
     
+    def enter_room(self):
+
+        name = "Doktor"
+        room_code = self.oda_ismi()
+        print(room_code)
+
+        
+
+        @sio.on('connect')
+        def on_connect():
+            print("Bağlandı.")
+            sio.emit('create_room', {'name': name, 'code': room_code})
+
+        @sio.event
+        def disconnect():
+            print("Bağlantı kesildi.")
+        self.create_room(name,room_code)
+
+    def create_room(self,name, room_code):
+
+        sio.connect('http://192.168.1.84:5000')  # Flask uygulamanızın adresine göre güncelleyin.
+        sio.emit('create_room', {'name': name, 'code': room_code})
+
     def efekt_listele(self):
         #Metin Gönderme sırasında seçilecek efektler listeleniyor.
         ses_efektler = ["Erkek", "Kadın", "Çocuk","Yaşlı kadın","Yaşlı adam"]
@@ -150,7 +191,7 @@ class server_erkek_page(QWidget):
         
         excepted_mesaj = "Beklenen_Mesaj"
         received_mesaj = self.client_socket.recv(1024).decode()
-        if received_mesaj == excepted_mesaj: #mesajlar aynı ise iletişime geçilecek
+        if received_mesaj == excepted_mesaj:
 
             print("ses göndermek için ilk iönce öğrenci tarafın hoparlörünü seçiniz...")
             #burada ara satırlara time.sleep(1) koydum çünkü tek thread ile yaptığımdan aynı anda yapamıyordu, başka thread koymak istemedim.
@@ -191,9 +232,6 @@ class server_erkek_page(QWidget):
         else:
              print("Dikkat, cihazınız tarandı!")
              self.connect_to_server()
-
-        #self.client_socket.close()
-        #self.server_socket.close()
         
 
     def connect_to_server_thread(self):
@@ -202,11 +240,6 @@ class server_erkek_page(QWidget):
 
             #################******######################
     def disconnect(self):
-        """
-        Ses Gönderim ve ses alma işlemlerini durdur
-        ve Bağlantıları kapat
-        """
-
         self.is_running = False  
         self.is_running_recv = False
         self.contunie = False
@@ -476,11 +509,36 @@ class server_erkek_page(QWidget):
         self.flag = False
             #################******######################   
     def yazi_gonder(self):
+            
+
+
+            @sio.event
+            async def connect():
+                print('Connected to server')
+
+            @sio.on('message')
+            async def handle_message(message):
+                print('Received message:', message)
+
+            room = self.room_code
+            name = "Doktor"
+
+            #sio.connect('http://192.168.1.84:5000', auth={"name": name, "room": room})
+
+            try:
+                message = self.server_erkek.metin_yeri.toPlainText()
+                sio.emit('message', {'data': message,'room':room,'name':name})
+            except KeyboardInterrupt: 
+                pass
+            
+            #sio.wait()
+
+            #sio.disconnect()
             """
             Metin göndermek için ayrı bir socket bağlantısı kuruyorum.
             Bunun sebebi ses verileriyle metin verilerinin birbirleriyle karışması ve istenmedik sorunlara yol açmasıydı.
             """       
-            try:
+            """try:
                 if not self.metin_flag:
                     server_socket_text = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     server_socket_text.bind((self.HOST, self.PORT_TEXT))
@@ -511,7 +569,7 @@ class server_erkek_page(QWidget):
                 self.metin_flag = False
                 # Socketi kapat ve yeniden bağlantıyı kurmak için çağrı yap
                 if self.client_socket_text:
-                    self.client_socket_text.close()
+                    self.client_socket_text.close()"""
         
 
             #################******######################
