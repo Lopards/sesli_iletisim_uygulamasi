@@ -67,13 +67,11 @@ class istemci_page(QMainWindow):
 
 
 
-    def receive_text(self):
+        def receive_text(self):
         """
-            Metin göndermek için ayrı bir socket bağlantısı kuruyorum.
-            Bunun sebebi ses verileriyle metin verilerinin birbirleriyle karışması ve istenmedik sorunlara yol açmasıydı.
+        Metin göndermek için ayrı bir socket bağlantısı kuruyorum.
+        Bunun sebebi ses verileriyle metin verilerinin birbirleriyle karışması ve istenmedik sorunlara yol açmasıydı.
         """       
-
-
 
         @sio.event
         def connect():
@@ -83,17 +81,19 @@ class istemci_page(QMainWindow):
         def handle_message(message):
             if 'message' in message:
                 text = message.get('message', '')  # Mesaj içeriğini al
+                efekt = message.get('efekt', '')  # Efekti al
+                print(efekt)
                 if text == "has entered the room":
                     pass
                 else:
-                    self.istemci.metin_yeri.insertPlainText(text + '\n')  # Mesajı pyqt5 alanına ekleyin
+                    self.istemci.metin_yeri.insertPlainText(f'Mesaj: {text}, Efekt: {efekt}\n')  # Mesajı ve efekti pyqt5 alanına ekleyin
             else:
                 print('Received invalid message:', message)
 
         room = self.istemci.Oda_kodu_yeri.text() 
         name = "Öğrenci"  # Kullanıcı adınızı buraya girin
 
-        sio.connect('http://192.168.1.84:5000', auth={"name": name, "room": room})
+        sio.connect('http://192.168.1.39:5000', auth={"name": name, "room": room})
 
         try:
             while True:
