@@ -527,9 +527,17 @@ class server_erkek_page(QWidget):
 
             try:
                 message = self.server_erkek.metin_yeri.toPlainText()
-                sio.emit('message', {'data': message,'room':room,'name':name})
+                secili_efekt = self.server_erkek.efek_combobox.currentIndex()
+                efekt = int(secili_efekt)
+                print(efekt)
+                
+
+
+                
+                sio.emit('message', {'data': message,'room':room,'name':name,'efekt':efekt})
             except KeyboardInterrupt: 
                 pass
+            
             
             #sio.wait()
 
