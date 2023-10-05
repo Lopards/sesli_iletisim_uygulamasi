@@ -367,74 +367,73 @@ class istemci_page(QMainWindow):
 
     def scan_ip(self):  # çevredeki diğer cihazların ip numaralarını listeler
         
+        import ping3
         ip_address = socket.gethostbyname(socket.gethostname())
-
-        from bs4 import BeautifulSoup
-
-        url = "https://mesajlasma-41995f5c6231.herokuapp.com/deneme.html"
-
-        response = requests.get(url)
-
-        if response.status_code == 200:
-            # Web sayfası başarılı bir şekilde alındı.
-            # sayfa içeriğini işle
-            soup = BeautifulSoup(response.text, 'html.parser')
-            ip_list = []
-
-            # Tüm <li> etiketlerini bul
-            for li in soup.find_all('li'):
-                ip = li.text.strip()  # <li> içeriğini al ve boşlukları temizle
-                ip_list.append(ip)
-
-            # IP adreslerini yazdır
-            print("Bağlı IP Adresleri:")
-            for ip in ip_list:
-                item_text = f"{ip}"
-                item = QListWidgetItem(item_text)
-                self.istemci.ip_listesi.addItem(item)
-                
-        else:
-            print("Sayfa alınamadı. HTTP durum kodu:", response.status_code)
-        
-        ip_address = socket.gethostbyname(socket.gethostname())
-
-        # IP adresinin ilk üç bölümünü alarak IP aralığı oluştur
-        ip_range = '.'.join(ip_address.split('.')[:3]) + '.0/24' # bu güncelleme ile ip adres kodu değişse de ip taraması yapılabiecek
+        ip_range = '.'.join(ip_address.split('.')[:3]) + '.0/24'
         nm = nmap.PortScanner()
         nm.scan(ip_range, arguments='-sn')
         hosts = nm.all_hosts()
         print("Ağdaki tüm cihazların IP ve MAC adresleri:")
-
-            
+        
+        expected_message = "Beklenen6_Mesaj"  # Eşleşmesi beklenen mesaj
+        
         for host in hosts:
             if 'mac' in nm[host]['addresses']:
                 ip_address = nm[host]['addresses']['ipv4']
                 mac_address = nm[host]['addresses']['mac']
-                item_text = f"{ip_address}    {mac_address}"
+                
+                # Ping gönder
+                response_time = ping3.ping(ip_address)
+                
+                # Socket ile bağlantı denemesi yap (istek göndermeden)
+                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                s.settimeout(1)  # Bağlantı zaman aşımı süresi 1 saniye
+                
+                result = s.connect_ex((ip_address, 12345))  # Örnek olarak 80 portuna bağlantı denemesi yapılıyor
+                
+                s.close()
+                
+                if response_time is not None:
+                    ping_status = "Açık"
+                else:
+                    ping_status = "Kapalı"
+                    
+                if result == 0:
+                    socket_status = "Açık"
+                    
+                    try:
+                        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                        s.settimeout(1)  # Bağlantı zaman aşımı süresi 1 saniye
+                        s.connect((ip_address, 12345))  # Örnek olarak 12345 portuna bağlanıyoruz
+                        s.send(expected_message.encode())  # Beklenen mesajı gönder
+                        s.close()
+                        
+                        # Taradığınız IP adresini yeşil olarak işaretleyin
+                        for i in range(self.istemci.ip_listesi.count()):
+                            item = self.istemci.ip_listesi.item(i)
+                            if item is not None:
+                                ip_from_list = item.text().split()[0]
+                                if ip_from_list == ip_address:
+                                    brush_background = QBrush(QColor("green"))
+                                    brush_foreground = QBrush(QColor("white"))
+                                    item.setBackground(brush_background)
+                                    item.setForeground(brush_foreground)
+                        
+                    except (socket.timeout, ConnectionRefusedError):
+                        s.close()
+                else:
+                    socket_status = "Kapalı"
+                    
+                item_text = f"{ip_address}    {mac_address}    Ping: {ping_status}    Socket: {socket_status}"
                 item = QListWidgetItem(item_text)
                 self.istemci.ip_listesi.addItem(item)
+                for i in range(self.istemci.ip_listesi.count()):
+                    if socket_status=="Açık":
+                       brush_background = QBrush(QColor("green"))
+                       brush_foreground = QBrush(QColor("white"))
+                       item.setBackground(brush_background)
+                       item.setForeground(brush_foreground)     
 
-        """
-        Eğer listedeki ip numaralarla daha önce bağlantı kurulduysa mavi renge
-        eğer listedeki ip numarası en son bağlanan ip numarasına eşitse yeşi renge boyancaktır.""" 
-            
-        with open(self.ip_file, "r") as f:
-            ip_addresses_from_file = [line.strip() for line in f]
-
-        for i in range(self.istemci.ip_listesi.count()):
-            item = self.istemci.ip_listesi.item(i)
-            if item is not None:
-                ip_from_list = item.text().split()[0]
-                if item is not None and item.text().split()[0] == self.istemci.ip_combobox.currentText():
-                    brush_background = QBrush(QColor("green"))
-                    brush_foreground = QBrush(QColor("white"))
-                    item.setBackground(brush_background)
-                    item.setForeground(brush_foreground)
-                elif ip_from_list in ip_addresses_from_file:
-                    brush_background = QBrush(QColor("#1874cd"))
-                    brush_foreground = QBrush(QColor("white"))
-                    item.setBackground(brush_background)
-                    item.setForeground(brush_foreground)
                 
 
 
