@@ -42,6 +42,7 @@ class server_erkek_page(QWidget):
         self.server_erkek.hoparlo_sec_button.clicked.connect(self.play_button_clicked)
         self.server_erkek.ogrenci_hoparlor_sec.clicked.connect(self.ogr_hoparlor_sec)
         self.server_erkek.oda_olustur_buton.clicked.connect(self.enter_room)
+        self.server_erkek.Dosya_gonder_buton.clicked.connect(self.send_file)
         self.HOST = None
         self.PORT = 12345
         self.PORT_TEXT =12346
@@ -74,6 +75,42 @@ class server_erkek_page(QWidget):
         self.efekt_listele()
         self.ip_tara()
         atexit.register(self.disconnect)
+
+    def send_file(self):
+        server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        host = '127.0.0.1'
+        port = 12345
+        server_socket.connect((host, port))
+
+       
+
+        
+        # İstemci bağlantısını kabul et
+
+
+        # Gönderilecek dosya adını al
+            #file_name = input("Gönderilecek dosyanın adını girin: ")
+        file_name_tuple = QFileDialog.getOpenFileName(self, 'Open file', os.getcwd(), '*')
+        file_name = file_name_tuple[0]
+
+        try:
+                # Dosyayı aç ve verileri oku
+            with open(file_name, 'rb') as file:
+                file_data = file.read()
+
+                # Dosya boyutunu gönder
+                file_size = len(file_data)
+                server_socket.send(str(file_size).encode())
+
+                # Dosya adını gönder
+                server_socket.send(os.path.basename(file_name).encode())
+
+                # Dosyayı gönder
+                server_socket.send(file_data)
+                print(f"{file_name} başarıyla gönderildi.")
+                
+        except FileNotFoundError:
+                print(f"{file_name} bulunamadı.")
          
     def oda_ismi(self):
         rooms = {}
