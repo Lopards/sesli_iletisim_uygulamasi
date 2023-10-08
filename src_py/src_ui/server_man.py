@@ -98,9 +98,6 @@ class Ui_Form(object):
         self.ogrenci_hoparlor_sec = QtWidgets.QPushButton(Form)
         self.ogrenci_hoparlor_sec.setGeometry(QtCore.QRect(140, 700, 93, 28))
         self.ogrenci_hoparlor_sec.setObjectName("ogrenci_hoparlor_sec")
-        self.label_6 = QtWidgets.QLabel(Form)
-        self.label_6.setGeometry(QtCore.QRect(900, 620, 81, 16))
-        self.label_6.setObjectName("label_6")
         self.kullanici_isim = QtWidgets.QLabel(Form)
         self.kullanici_isim.setGeometry(QtCore.QRect(870, 650, 121, 31))
         self.kullanici_isim.setText("")
@@ -115,6 +112,9 @@ class Ui_Form(object):
         self.oda_olustur_buton = QtWidgets.QPushButton(Form)
         self.oda_olustur_buton.setGeometry(QtCore.QRect(680, 40, 93, 28))
         self.oda_olustur_buton.setObjectName("oda_olustur_buton")
+        self.Dosya_gonder_buton = QtWidgets.QPushButton(Form)
+        self.Dosya_gonder_buton.setGeometry(QtCore.QRect(440, 500, 93, 28))
+        self.Dosya_gonder_buton.setObjectName("Dosya_gonder_buton")
 
         self.retranslateUi(Form)
         QtCore.QMetaObject.connectSlotsByName(Form)
@@ -139,9 +139,9 @@ class Ui_Form(object):
         self.baglantiyi_kes_buton.setText(_translate("Form", "Baglantıyı kes"))
         self.label_5.setText(_translate("Form", "Öğrenci tarafının hoparlörünü seçin"))
         self.ogrenci_hoparlor_sec.setText(_translate("Form", "Seç"))
-        self.label_6.setText(_translate("Form", "Kullanici Adı"))
         self.label_7.setText(_translate("Form", "Oda kodu:"))
         self.oda_olustur_buton.setText(_translate("Form", "oda oluştur"))
+        self.Dosya_gonder_buton.setText(_translate("Form", "Dosya Gönder"))
 
 
 if __name__ == "__main__":
