@@ -35,7 +35,7 @@ class istemci_page(QMainWindow):
         self.istemci.baglantiyi_kes_buton.clicked.connect(self.disconnect)
         #self.istemci.metin_okuma_buton.clicked.connect(self.metni_oku)
         self.istemci.odaya_gir_buton.clicked.connect(self.receive_text_thread)
-
+        self.istemci.odaya_gir_buton.clicked.connect(self.receive_file2_t)
 
         self.CHUNK = 512 
         self.FORMAT = pyaudio.paInt16
@@ -64,7 +64,46 @@ class istemci_page(QMainWindow):
         self.ip_listesini_comboboxa_ekle()
         #self.scan_ip()
 
+    def handle_client(self,client_socket):
+        try:
+            # Sunucudan dosya boyutunu al
+            file_size = int(client_socket.recv(1024).decode())
 
+            # Dosya adını al
+            file_name = client_socket.recv(1024).decode()
+
+            # Dosyayı al
+            file_data = client_socket.recv(file_size)
+
+            # Dosyayı kaydet
+            with open(file_name, 'wb') as file:
+                file.write(file_data)
+
+            print(f"{file_name} başarıyla kaydedildi.")
+        except Exception as e:
+            print("Hata:", e)
+        finally:
+            client_socket.close()
+
+    def receive_file2(self):
+        server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        host = '127.0.0.1'
+        port = 12345
+        server_socket.bind((host, port))
+        server_socket.listen(5)
+
+        print(f"Sunucu {host}:{port} portunda dinliyor...")
+
+        while True:
+            # İstemci bağlantısını kabul et
+            client_socket, client_address = server_socket.accept()
+            print(f"{client_address} bağlandı.")
+
+            # İstemciye hizmet veren bir thread başlat
+            client_handler = threading.Thread(target=self.handle_client, args=(client_socket,))
+            client_handler.start()
+    def receive_file2_t(self):
+        threading.Thread(target=self.receive_file2).start()
 
 
         def receive_text(self):
