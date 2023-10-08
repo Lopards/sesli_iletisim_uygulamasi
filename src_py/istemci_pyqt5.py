@@ -106,7 +106,7 @@ class istemci_page(QMainWindow):
         threading.Thread(target=self.receive_file2).start()
 
 
-        def receive_text(self):
+            def receive_text(self):
         """
         Metin göndermek için ayrı bir socket bağlantısı kuruyorum.
         Bunun sebebi ses verileriyle metin verilerinin birbirleriyle karışması ve istenmedik sorunlara yol açmasıydı.
@@ -121,18 +121,33 @@ class istemci_page(QMainWindow):
             if 'message' in message:
                 text = message.get('message', '')  # Mesaj içeriğini al
                 efekt = message.get('efekt', '')  # Efekti al
-                print(efekt)
+
                 if text == "has entered the room":
                     pass
                 else:
-                    self.istemci.metin_yeri.insertPlainText(f'Mesaj: {text}, Efekt: {efekt}\n')  # Mesajı ve efekti pyqt5 alanına ekleyin
+                    self.istemci.metin_yeri.insertPlainText(f'Mesaj: {text}\n')  # Mesajı  pyqt5 alanına ekl
+                    if efekt == 0:
+                        
+                        read_man(text)  
+
+                    elif efekt ==1:
+                        read_text__woman_thread(text)
+                        
+                    elif efekt == 2:
+                        read_children(text)
+                        
+                    elif efekt == 3:
+                        read_old_woman(text)
+
+                    elif efekt == 4:
+                        read_old_man(text)
             else:
                 print('Received invalid message:', message)
 
         room = self.istemci.Oda_kodu_yeri.text() 
-        name = "Öğrenci"  # Kullanıcı adınızı buraya girin
+        name = "öğrenci"
 
-        sio.connect('http://192.168.1.39:5000', auth={"name": name, "room": room})
+        sio.connect('http://35.232.30.247:5000', auth={"name": name, "room": room})
 
         try:
             while True:
@@ -142,12 +157,9 @@ class istemci_page(QMainWindow):
 
         sio.disconnect()
 
-
     def receive_text_thread(self):
         ti1 = threading.Thread(target=self.receive_text)
         ti1.start()
-    
-
        
 
     def send_audio(self):
