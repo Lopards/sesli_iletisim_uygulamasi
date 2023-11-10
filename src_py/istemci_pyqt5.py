@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import *
-from src_py.src_ui.istemci import Ui_Dialog
+from src_py.src_ui.istemci import Ui_Form
 from PyQt5.QtWidgets import QListWidgetItem
 import threading
 import pyaudio
@@ -20,23 +20,28 @@ sio = socketio.Client()
 class istemci_page(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
-        self.istemci = Ui_Dialog()
+        self.istemci = Ui_Form()
         self.istemci.setupUi(self)
 
         self.istemci.ip_tara_buton.clicked.connect(self.scan_ip)
         self.istemci.otomatik_baglan_buton.clicked.connect(self.connect_to_server_Automatic)
         self.istemci.manuel_baglan.clicked.connect(self.connect_to_server_Manuel)
 
-        self.istemci.ses_gonder_buton.clicked.connect(self.start_communication)
-        self.istemci.Ses_gonder_dur.clicked.connect(self.stop_communication)
+        #self.istemci.ses_gonder_buton.clicked.connect(self.start_communication)
+        #self.istemci.Ses_gonder_dur.clicked.connect(self.stop_communication)
         #self.istemci.Ses_al_buton.clicked.connect(self.get_sound)
         self.istemci.ses_al_devam.clicked.connect(self.get_sound_continue)
-        self.istemci.ses_al_duraklat.clicked.connect(self.get_sound_stop)
+        #self.istemci.ses_al_duraklat.clicked.connect(self.get_sound_stop)
         self.istemci.baglantiyi_kes_buton.clicked.connect(self.disconnect)
         #self.istemci.metin_okuma_buton.clicked.connect(self.metni_oku)
         self.istemci.odaya_gir_buton.clicked.connect(self.receive_text_thread)
         self.istemci.odaya_gir_buton.clicked.connect(self.receive_file2_t)
+        
+        self.istemci.ses_gonder_buton.setCheckable(True)
+        self.istemci.ses_gonder_buton.clicked.connect(self.is_toggle_microfon)
 
+        self.istemci.ses_al_devam.setCheckable(True)
+        self.istemci.ses_al_devam.clicked.connect(self.is_toggle_headset)
         self.CHUNK = 512 
         self.FORMAT = pyaudio.paInt16
         self.CHANNELS = 1
@@ -59,10 +64,36 @@ class istemci_page(QMainWindow):
 
 
         self.ip_file = "ip_addresses.txt"  # IP adreslerini saklayan dosya adı
-        self.istemci.ip_listesi.itemDoubleClicked.connect(self.item_double_clicked)
+        #self.istemci.ip_listesi.itemDoubleClicked.connect(self.item_double_clicked)
         
         self.ip_listesini_comboboxa_ekle()
         #self.scan_ip()
+    def is_toggle_microfon(self):# ses gönderimini kapatıp açmak için bir fonksiyon
+        if self.istemci.ses_gonder_buton.isChecked():
+            print("Ses gönderimi aktif")
+            self.istemci.ses_gonder_buton.setText("Mikrofon açık")
+            self.istemci.ses_gonder_buton.setStyleSheet("QPushButton {background-color:lightgreen}")
+            if not self.is_running:
+                self.is_running = True
+                threading.Thread(target=self.send_audio).start()
+        else:   
+            print("Ses gönderimi pasif")
+            self.istemci.ses_gonder_buton.setText("Mikrofon kapalı")
+            self.istemci.ses_gonder_buton.setStyleSheet("QPushButton {background-color:lightcoral}")
+            if self.is_running:
+                self.is_running = False
+
+    def is_toggle_headset(self):# ses alımını kapatıp açmak için bir fonksiyon
+        if self.istemci.ses_al_devam.isChecked():
+            print("Kulaklık aktif")
+            self.istemci.ses_al_devam.setText("Kulaklık açık")
+            self.istemci.ses_al_devam.setStyleSheet("QPushButton {background-color:lightgreen}")
+            self.Event.set()
+        else:   
+            print("Kulaklık pasif")
+            self.istemci.ses_al_devam.setText("Kulaklık kapalı")
+            self.istemci.ses_al_devam.setStyleSheet("QPushButton {background-color:lightcoral}")
+            self.Event.clear()
 
     def handle_client(self,client_socket):
         try:
@@ -106,7 +137,7 @@ class istemci_page(QMainWindow):
         threading.Thread(target=self.receive_file2).start()
 
 
-            def receive_text(self):
+    def receive_text(self):
         """
         Metin göndermek için ayrı bir socket bağlantısı kuruyorum.
         Bunun sebebi ses verileriyle metin verilerinin birbirleriyle karışması ve istenmedik sorunlara yol açmasıydı.
