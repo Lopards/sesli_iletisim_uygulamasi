@@ -2,7 +2,7 @@ from PyQt5 import QtCore
 from PyQt5.QtWidgets import *
 from PyQt5.QtWidgets import QWidget
 from src_py.src_ui.server_man import Ui_Form
-from PyQt5.QtGui import QStandardItem, QStandardItemModel
+from PyQt5.QtGui import QStandardItem, QStandardItemModel,QIcon,QPixmap
 import atexit #program aniden kapansa bile 69. satır sayesinde sql database durum = çıkıldı yapılıyor.
 import mysql.connector#sql bağlantısı
 import requests
@@ -17,7 +17,7 @@ import random
 import socketio
 from string import ascii_uppercase
 from scipy import signal
-
+import os
 sio = socketio.Client()
 class server_erkek_page(QWidget):
     def __init__(self) -> None:
@@ -32,17 +32,22 @@ class server_erkek_page(QWidget):
         self.server_erkek.baglanti_kur.clicked.connect(self.connect_to_server_thread)
 
         self.server_erkek.Baslat_buton.clicked.connect(self.start)
-        self.server_erkek.Durdur_buton.clicked.connect(self.stop)
+        #self.server_erkek.Durdur_buton.clicked.connect(self.stop)
         self.server_erkek.baglantiyi_kes_buton.clicked.connect(self.disconnect)
 
         #self.server_erkek.Ses_al_buton.clicked.connect(self.start_get_sound)
         self.server_erkek.Ses_a_devaml_buton.clicked.connect(self.get_sound_contunie)
-        self.server_erkek.Ses_al_dur_buton.clicked.connect(self.get_sound_stop)
+        #self.server_erkek.Ses_al_dur_buton.clicked.connect(self.get_sound_stop)
 
         self.server_erkek.hoparlo_sec_button.clicked.connect(self.play_button_clicked)
         self.server_erkek.ogrenci_hoparlor_sec.clicked.connect(self.ogr_hoparlor_sec)
-        self.server_erkek.oda_olustur_buton.clicked.connect(self.enter_room)
+        #self.server_erkek.oda_olustur_buton.clicked.connect(self.enter_room)
         self.server_erkek.Dosya_gonder_buton.clicked.connect(self.send_file)
+        
+        self.server_erkek.Baslat_buton.setCheckable(True)
+        self.server_erkek.Baslat_buton.clicked.connect(self.is_toggle_mic)
+        self.server_erkek.Ses_a_devaml_buton.setCheckable(True)
+        self.server_erkek.Ses_a_devaml_buton.clicked.connect(self.is_toggle_headset)
         self.HOST = None
         self.PORT = 12345
         self.PORT_TEXT =12346
@@ -74,8 +79,49 @@ class server_erkek_page(QWidget):
         self.hoparlor_liste()
         self.efekt_listele()
         self.ip_tara()
+        self.enter_room()
         atexit.register(self.disconnect)
-
+        icon = QIcon("dosya_gonder_icon.png")
+        self.server_erkek.Dosya_gonder_buton.setIcon(icon)
+        #self.server_erkek.Dosya_gonder_buton.setIconSize(icon.actualSize(icon.availableSizes()[0]))
+    def is_toggle_mic(self):
+        if self.server_erkek.Baslat_buton.isChecked():
+            print("Ses gönderimi aktif")
+            #self.server_erkek.Baslat_buton.setText("Mikrofon açık")
+            self.server_erkek.Baslat_buton.setStyleSheet("QPushButton {background-color:lightgreen}")
+            icon = QIcon("acikmikrofon.png")
+            self.server_erkek.Baslat_buton.setIcon(icon)
+            if  self.is_running !=True:
+                self.is_running = True
+                threading.Thread(target=self.send_audio).start()
+        else:   
+            print("Ses gönderimi pasif")
+            self.server_erkek.Baslat_buton.setText("Mikrofon kapalı")
+            self.server_erkek.Baslat_buton.setStyleSheet("QPushButton {background-color:lightcoral}")
+            icon = QIcon("kapali_mic.png")
+            self.server_erkek.Baslat_buton.setIcon(icon)
+            if self.is_running:
+                self.is_running = False
+    def is_toggle_headset(self):
+        if self.server_erkek.Ses_a_devaml_buton.isChecked():
+            print("ses alımı aktif")
+            self.server_erkek.Ses_a_devaml_buton.setText("")
+            self.server_erkek.Ses_a_devaml_buton.setStyleSheet("QPushButton {background-color:lightgreen}")
+            icon = QIcon("kulaklik.jpeg")
+            self.server_erkek.Ses_a_devaml_buton.setIcon(icon)
+            self.contunie = True
+            if self.is_running_recv!=True:
+                self.is_running_recv = True
+                threading.Thread(target=self.get_sound_fonc).start()
+            self.Event.set()
+        else:
+            print("Ses alımı pasif")
+            icon = QIcon("kapali_kulaklik.jpg")
+            self.server_erkek.Ses_a_devaml_buton.setIcon(icon)
+            #self.server_erkek.Ses_a_devaml_buton.setText("ses alımı kapalı")
+            self.server_erkek.Ses_a_devaml_buton.setStyleSheet("QPushButton {background-color:lightcoral}")
+            self.Event.clear()
+            
     def send_file(self):
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         host = '127.0.0.1'
@@ -143,9 +189,9 @@ class server_erkek_page(QWidget):
         self.create_room(name,room_code)
 
     def create_room(self,name, room_code):
-
-        sio.connect('http://192.168.1.84:5000')  # Flask uygulamanızın adresine göre güncelleyin.
-        sio.emit('create_room', {'name': name, 'code': room_code})
+        print("oda oluşturuldu")
+        #sio.connect('http://192.168.1.84:5000')  # Flask uygulamanızın adresine göre güncelleyin.
+        #sio.emit('create_room', {'name': name, 'code': room_code})
 
     def efekt_listele(self):
         #Metin Gönderme sırasında seçilecek efektler listeleniyor.
@@ -176,7 +222,7 @@ class server_erkek_page(QWidget):
 
             
 
-        self.server_erkek.hoparlor_lis.setModel(model)
+        self.server_erkek.hoparlor_liste.setModel(model)
         
         #################******######################
     def ip_tara(self):
@@ -470,7 +516,7 @@ class server_erkek_page(QWidget):
                         ##### ********** ######
 
     def select_output_device(self):     #listede seçilen hoparlörün indexini al ve return et. return edilen indexi 'play_button_clicked' fonskiyonu alacak
-        device_indexes = self.server_erkek.hoparlor_lis.selectedIndexes()
+        device_indexes = self.server_erkek.hoparlor_liste.selectedIndexes()
         if device_indexes:
             selected_row = device_indexes[0].row()
             output_device_index = selected_row
@@ -626,4 +672,5 @@ class server_erkek_page(QWidget):
 """app = QApplication([])
 window = server_erkek_page()
 window.show()
-app.exec_()"""
+app.exec_()
+"""
