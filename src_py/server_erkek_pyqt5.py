@@ -1,4 +1,5 @@
 from PyQt5 import QtCore
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import *
 from PyQt5.QtWidgets import QWidget
 from src_py.src_ui.server_man import Ui_Form
@@ -41,6 +42,7 @@ class server_erkek_page(QWidget):
 
         self.server_erkek.hoparlo_sec_button.clicked.connect(self.play_button_clicked)
         self.server_erkek.ogrenci_hoparlor_sec.clicked.connect(self.ogr_hoparlor_sec)
+        self.server_erkek.ogr_hoparlor_liste_ac.clicked.connect(self.ogr_liste_ac)
         #self.server_erkek.oda_olustur_buton.clicked.connect(self.enter_room)
         self.server_erkek.Dosya_gonder_buton.clicked.connect(self.send_file)
         
@@ -48,6 +50,26 @@ class server_erkek_page(QWidget):
         self.server_erkek.Baslat_buton.clicked.connect(self.is_toggle_mic)
         self.server_erkek.Ses_a_devaml_buton.setCheckable(True)
         self.server_erkek.Ses_a_devaml_buton.clicked.connect(self.is_toggle_headset)
+        self.server_erkek.ogr_hoparlor_liste_ac.setCheckable(True)
+        self.server_erkek.hoparlor_liste_ac.setCheckable(True)
+        self.server_erkek.hoparlor_liste_ac.clicked.connect(self.hoparlor_liste_ac)
+
+        self.server_erkek.hoparlor_liste_ac.setCursor(Qt.PointingHandCursor)  # Bu satırı ekleyerek mouse işaretçisini değiştirebilirsiniz
+        self.server_erkek.ip_tara.setCursor(Qt.PointingHandCursor)
+        self.server_erkek.baglanti_kur.setCursor(Qt.PointingHandCursor)
+        self.server_erkek.baglantiyi_kes_buton.setCursor(Qt.PointingHandCursor)
+        self.server_erkek.Baslat_buton.setCursor(Qt.PointingHandCursor)
+        self.server_erkek.Ses_a_devaml_buton.setCursor(Qt.PointingHandCursor)
+        self.server_erkek.ogr_hoparlor_liste_ac.setCursor(Qt.PointingHandCursor)
+        self.server_erkek.Gonder_buton.setCursor(Qt.PointingHandCursor)
+        self.server_erkek.Dosya_gonder_buton.setCursor(Qt.PointingHandCursor)
+        self.server_erkek.hoparlo_sec_button.setCursor(Qt.PointingHandCursor)
+        self.server_erkek.ogrenci_hoparlor_sec.setCursor(Qt.PointingHandCursor)
+        self.server_erkek.ogr_hoparlor_liste_ac.setCursor(Qt.PointingHandCursor)
+        self.server_erkek.hoparlor_liste_ac.setCursor(Qt.PointingHandCursor)
+        self.server_erkek.sesli_yaz_buton.setCursor(Qt.PointingHandCursor)
+        self.server_erkek.sesli_yaz_durdur_buton.setCursor(Qt.PointingHandCursor)
+
         self.HOST = None
         self.PORT = 12345
         self.PORT_TEXT =12346
@@ -87,8 +109,8 @@ class server_erkek_page(QWidget):
     def is_toggle_mic(self):
         if self.server_erkek.Baslat_buton.isChecked():
             print("Ses gönderimi aktif")
-            #self.server_erkek.Baslat_buton.setText("Mikrofon açık")
-            self.server_erkek.Baslat_buton.setStyleSheet("QPushButton {background-color:lightgreen}")
+            self.server_erkek.Baslat_buton.setText("")
+            self.server_erkek.Baslat_buton.setStyleSheet("QPushButton {background-color: #0d730d; border-radius:15px;color:white;}")
             icon = QIcon("acikmikrofon.png")
             self.server_erkek.Baslat_buton.setIcon(icon)
             if  self.is_running !=True:
@@ -96,8 +118,8 @@ class server_erkek_page(QWidget):
                 threading.Thread(target=self.send_audio).start()
         else:   
             print("Ses gönderimi pasif")
-            self.server_erkek.Baslat_buton.setText("Mikrofon kapalı")
-            self.server_erkek.Baslat_buton.setStyleSheet("QPushButton {background-color:lightcoral}")
+            #self.server_erkek.Baslat_buton.setText("Mikrofon kapalı")
+            self.server_erkek.Baslat_buton.setStyleSheet("QPushButton {background-color:#ff4040; border-radius:15px;color:white;}")
             icon = QIcon("kapali_mic.png")
             self.server_erkek.Baslat_buton.setIcon(icon)
             if self.is_running:
@@ -106,7 +128,7 @@ class server_erkek_page(QWidget):
         if self.server_erkek.Ses_a_devaml_buton.isChecked():
             print("ses alımı aktif")
             self.server_erkek.Ses_a_devaml_buton.setText("")
-            self.server_erkek.Ses_a_devaml_buton.setStyleSheet("QPushButton {background-color:lightgreen}")
+            self.server_erkek.Ses_a_devaml_buton.setStyleSheet("QPushButton {background-color: #0d730d; border-radius:15px;color:white;}")
             icon = QIcon("kulaklik.jpeg")
             self.server_erkek.Ses_a_devaml_buton.setIcon(icon)
             self.contunie = True
@@ -119,7 +141,7 @@ class server_erkek_page(QWidget):
             icon = QIcon("kapali_kulaklik.jpg")
             self.server_erkek.Ses_a_devaml_buton.setIcon(icon)
             #self.server_erkek.Ses_a_devaml_buton.setText("ses alımı kapalı")
-            self.server_erkek.Ses_a_devaml_buton.setStyleSheet("QPushButton {background-color:lightcoral}")
+            self.server_erkek.Ses_a_devaml_buton.setStyleSheet("QPushButton {background-color:#ff4040; border-radius:15px;color:white;}")
             self.Event.clear()
             
     def send_file(self):
@@ -250,10 +272,13 @@ class server_erkek_page(QWidget):
                
     def ogr_hoparlor_sec(self):
         #Seç butonu ile ögrenci hoparlörünü seç ve seçilen indexi istemciye yolla 
-        selected_efect = self.server_erkek.ogrenci_hoparlor_liste.selectedIndexes()
-        selected_row = selected_efect[0].row()  # İndexin ilk elemanını al
-        selected_efect_bytes = selected_row.to_bytes(10, byteorder="big")  # İndexi 10 byte olarak gönder
-        self.client_socket.send(selected_efect_bytes)
+        try:
+            selected_efect = self.server_erkek.ogrenci_hoparlor_liste.selectedIndexes()
+            selected_row = selected_efect[0].row()  # İndexin ilk elemanını al
+            selected_efect_bytes = selected_row.to_bytes(10, byteorder="big")  # İndexi 10 byte olarak gönder
+            self.client_socket.send(selected_efect_bytes)
+        except:
+            print("tekrar deneyiniz")
 
 
         #################******######################
@@ -326,7 +351,13 @@ class server_erkek_page(QWidget):
         self.is_running = False  
         self.is_running_recv = False
         self.contunie = False
-        
+        self.server_erkek.Baslat_buton.setStyleSheet("QPushButton {background-color:#ff4040; border-radius:15px;color:white;}")
+        icon = QIcon("kapali_mic.png")
+        self.server_erkek.Baslat_buton.setIcon(icon)
+
+        icon = QIcon("kapali_kulaklik.jpg")
+        self.server_erkek.Ses_a_devaml_buton.setIcon(icon)
+        self.server_erkek.Ses_a_devaml_buton.setStyleSheet("QPushButton {background-color:#ff4040; border-radius:15px;color:white;}")
         if self.client_socket is not None:
             try:
                 self.client_socket.shutdown(socket.SHUT_RDWR)
@@ -394,10 +425,13 @@ class server_erkek_page(QWidget):
         
 
          #işlem sonunda tüm bağlantıları durdur ve kapat
-        stream.stop_stream()
-        stream.close()
-        self.client_socket.close()
-        p.terminate()
+        try:
+            stream.stop_stream()
+            stream.close()
+            self.client_socket.close()
+            p.terminate()
+        except:
+            pass
 
             #################******######################
     
@@ -435,11 +469,13 @@ class server_erkek_page(QWidget):
                     self.client_socket, address = self.server_socket.accept()
                     print(f"* {address} adresinden yeni bir bağlantı alındı.")
             
-
-        stream.stop_stream()
-        stream.close()
-        self.client_socket.close()
-        p.terminate()
+        try:
+            stream.stop_stream()
+            stream.close()
+            self.client_socket.close()
+            p.terminate()
+        except:
+            pass
         
         
 
@@ -471,6 +507,30 @@ class server_erkek_page(QWidget):
     def stop(self):
         
             self.is_running = False
+    def hoparlor_liste_ac(self):
+        if self.server_erkek.hoparlor_liste_ac.isChecked():
+            self.server_erkek.hoparlor_liste_ac.setText("Hoparlör listesini kapat")
+            self.server_erkek.hoparlor_liste.hide()
+            self.server_erkek.hoparlo_sec_button.hide()
+            self.server_erkek.hoparor_secim_frame.hide()
+           
+        else:
+            self.server_erkek.hoparlor_liste_ac.setText("Hoparlör listesini aç")
+            self.server_erkek.hoparlor_liste.show()
+            self.server_erkek.hoparlo_sec_button.show() 
+            self.server_erkek.hoparor_secim_frame.show()
+    def ogr_liste_ac(self):
+        
+        
+        if self.server_erkek.ogr_hoparlor_liste_ac.isChecked():
+            self.server_erkek.ogr_hoparlor_liste_ac.setText("Hoparlör listesini Kapat")
+            self.server_erkek.ogrenci_hoparlor_liste.hide()
+            self.server_erkek.ogrenci_hoparlor_sec.hide()
+           
+        else:
+            self.server_erkek.ogr_hoparlor_liste_ac.setText("Hoparlör listesini Aç")
+            self.server_erkek.ogrenci_hoparlor_liste.show()
+            self.server_erkek.ogrenci_hoparlor_sec.show() 
             
 
 
@@ -672,5 +732,4 @@ class server_erkek_page(QWidget):
 """app = QApplication([])
 window = server_erkek_page()
 window.show()
-app.exec_()
-"""
+app.exec_()"""
