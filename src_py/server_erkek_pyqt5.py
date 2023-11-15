@@ -272,13 +272,10 @@ class server_erkek_page(QWidget):
                
     def ogr_hoparlor_sec(self):
         #Seç butonu ile ögrenci hoparlörünü seç ve seçilen indexi istemciye yolla 
-        try:
-            selected_efect = self.server_erkek.ogrenci_hoparlor_liste.selectedIndexes()
-            selected_row = selected_efect[0].row()  # İndexin ilk elemanını al
-            selected_efect_bytes = selected_row.to_bytes(10, byteorder="big")  # İndexi 10 byte olarak gönder
-            self.client_socket.send(selected_efect_bytes)
-        except:
-            print("tekrar deneyiniz")
+        selected_efect = self.server_erkek.ogrenci_hoparlor_liste.selectedIndexes()
+        selected_row = selected_efect[0].row()  # İndexin ilk elemanını al
+        selected_efect_bytes = selected_row.to_bytes(10, byteorder="big")  # İndexi 10 byte olarak gönder
+        self.client_socket.send(selected_efect_bytes)
 
 
         #################******######################
@@ -354,10 +351,6 @@ class server_erkek_page(QWidget):
         self.server_erkek.Baslat_buton.setStyleSheet("QPushButton {background-color:#ff4040; border-radius:15px;color:white;}")
         icon = QIcon("kapali_mic.png")
         self.server_erkek.Baslat_buton.setIcon(icon)
-
-        icon = QIcon("kapali_kulaklik.jpg")
-        self.server_erkek.Ses_a_devaml_buton.setIcon(icon)
-        self.server_erkek.Ses_a_devaml_buton.setStyleSheet("QPushButton {background-color:#ff4040; border-radius:15px;color:white;}")
         if self.client_socket is not None:
             try:
                 self.client_socket.shutdown(socket.SHUT_RDWR)
@@ -425,13 +418,10 @@ class server_erkek_page(QWidget):
         
 
          #işlem sonunda tüm bağlantıları durdur ve kapat
-        try:
-            stream.stop_stream()
-            stream.close()
-            self.client_socket.close()
-            p.terminate()
-        except:
-            pass
+        stream.stop_stream()
+        stream.close()
+        self.client_socket.close()
+        p.terminate()
 
             #################******######################
     
@@ -469,13 +459,11 @@ class server_erkek_page(QWidget):
                     self.client_socket, address = self.server_socket.accept()
                     print(f"* {address} adresinden yeni bir bağlantı alındı.")
             
-        try:
-            stream.stop_stream()
-            stream.close()
-            self.client_socket.close()
-            p.terminate()
-        except:
-            pass
+
+        stream.stop_stream()
+        stream.close()
+        self.client_socket.close()
+        p.terminate()
         
         
 
@@ -729,7 +717,7 @@ class server_erkek_page(QWidget):
         t1 = threading.Thread(target=self.yazi_gonder)
         t1.start()
 
-"""app = QApplication([])
+app = QApplication([])
 window = server_erkek_page()
 window.show()
-app.exec_()"""
+app.exec_()
