@@ -15,6 +15,8 @@ from PyQt5.QtGui import QColor, QBrush
 import requests
 from bs4 import BeautifulSoup
 import socketio
+from cryptography.fernet import Fernet  
+import base64
 sio = socketio.Client()
 
 class istemci_page(QMainWindow):
@@ -137,12 +139,14 @@ class istemci_page(QMainWindow):
         threading.Thread(target=self.receive_file2).start()
 
 
-    def receive_text(self):
-        """
-        Metin göndermek için ayrı bir socket bağlantısı kuruyorum.
-        Bunun sebebi ses verileriyle metin verilerinin birbirleriyle karışması ve istenmedik sorunlara yol açmasıydı.
-        """       
+    def decrypt_message(self, encrypted_message, key):
+        cipher_suite = Fernet(base64.urlsafe_b64encode(key).decode('utf-8'))
+        decrypted_message = cipher_suite.decrypt(encrypted_message).decode()
+        return decrypted_message
+        
 
+
+    def receive_text(self):
         @sio.event
         def connect():
             print('Connected to server')
@@ -150,35 +154,39 @@ class istemci_page(QMainWindow):
         @sio.on('message')
         def handle_message(message):
             if 'message' in message:
-                text = message.get('message', '')  # Mesaj içeriğini al
+                text = message.get('message', '')  # Şifreli mesaj içeriğini al
                 efekt = message.get('efekt', '')  # Efekti al
-
+                key = message.get('key', '')  # Anahtarı al
+                print(key,text)
                 if text == "has entered the room":
                     pass
                 else:
-                    self.istemci.metin_yeri.insertPlainText(f'Mesaj: {text}\n')  # Mesajı  pyqt5 alanına ekl
+                    # Mesajı çöz
+                   
+                    #key = base64.urlsafe_b64encode(key).decode('utf-8')
+                    key = base64.urlsafe_b64decode(key.decode('utf-8'))  # Anahtarı çöz
+                    #key = base64.urlsafe_b64decode(key)  # Anahtarı çöz
+                    decrypted_message = self.decrypt_message(text, key)
+                    print(decrypted_message, "zaaaaa")
+                    self.istemci.metin_yeri.insertPlainText(f'Mesaj: {decrypted_message}\n')  # Çözülmüş mesajı pyqt5 alanına ekle
                     if efekt == 0:
-                        
-                        read_man(text)  
-
-                    elif efekt ==1:
-                        read_text__woman_thread(text)
-                        
+                        read_man(decrypted_message)
+                    elif efekt == 1:
+                        read_text__woman_thread(decrypted_message)
                     elif efekt == 2:
-                        read_children(text)
-                        
+                        read_children(decrypted_message)
                     elif efekt == 3:
-                        read_old_woman(text)
-
+                        read_old_woman(decrypted_message)
                     elif efekt == 4:
-                        read_old_man(text)
+                        read_old_man(decrypted_message)
             else:
                 print('Received invalid message:', message)
+
 
         room = self.istemci.Oda_kodu_yeri.text() 
         name = "öğrenci"
 
-        sio.connect('http://35.232.30.247:5000', auth={"name": name, "room": room})
+        sio.connect('http://35.202.241.22:5000', auth={"name": name, "room": room})
 
         try:
             while True:
@@ -187,7 +195,7 @@ class istemci_page(QMainWindow):
             pass  # Ctrl+C ile çıkış yapılabilir
 
         sio.disconnect()
-
+        
     def receive_text_thread(self):
         ti1 = threading.Thread(target=self.receive_text)
         ti1.start()
