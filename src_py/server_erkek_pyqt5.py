@@ -19,6 +19,7 @@ import socketio
 from string import ascii_uppercase
 from scipy import signal
 import os
+from cryptography.fernet import Fernet
 sio = socketio.Client()
 class server_erkek_page(QWidget):
     def __init__(self) -> None:
@@ -640,82 +641,49 @@ class server_erkek_page(QWidget):
         self.flag = False
             #################******######################   
     def yazi_gonder(self):
-            
+        room = self.room_code
+        name = "Doktor"
 
+        try:
+            message = self.server_erkek.metin_yeri.toPlainText()
+            secili_efekt = self.server_erkek.efek_combobox.currentIndex()
+            efekt = int(secili_efekt)
+            print(efekt)
 
-            @sio.event
-            async def connect():
-                print('Connected to server')
+            # Anahtar oluştur
+            key = self.generate_key()
+            print(key)
+            # Mesajı şifrele
+            encrypted_message = self.encrypt_message(message, key)
+            print(encrypted_message,key)
 
-            @sio.on('message')
-            async def handle_message(message):
-                print('Received message:', message)
-
-            room = self.room_code
-            name = "Doktor"
-
-            #sio.connect('http://192.168.1.84:5000', auth={"name": name, "room": room})
-
-            try:
-                message = self.server_erkek.metin_yeri.toPlainText()
-                secili_efekt = self.server_erkek.efek_combobox.currentIndex()
-                efekt = int(secili_efekt)
-                print(efekt)
-                
-
-
-                
-                sio.emit('message', {'data': message,'room':room,'name':name,'efekt':efekt})
-            except KeyboardInterrupt: 
-                pass
+            # Şifreli mesajı gönder
+            sio.emit('message', {'data': encrypted_message.decode(), 'room': room, 'name': name, 'efekt': efekt, 'key': key})
+        except KeyboardInterrupt:
+            pass
             
             
             #sio.wait()
 
             #sio.disconnect()
-            """
-            Metin göndermek için ayrı bir socket bağlantısı kuruyorum.
-            Bunun sebebi ses verileriyle metin verilerinin birbirleriyle karışması ve istenmedik sorunlara yol açmasıydı.
-            """       
-            """try:
-                if not self.metin_flag:
-                    server_socket_text = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                    server_socket_text.bind((self.HOST, self.PORT_TEXT))
-                    server_socket_text.listen(1)           
-                    print(f"* Metin için {self.HOST}:{self.PORT_TEXT} dinleniyor...")
 
-                    self.client_socket_text, address = server_socket_text.accept()
-                    print(f"* Metin için {address} bağlanıldı.")
-
-                    self.metin_flag = True  # Bayrağı True olarak ayarla, böylece tekrardan bağlantı kurmuyor
-
-                metin = self.server_erkek.metin_yeri.toPlainText().strip() #metin alanındaki yazıları alıyoruz
-                
-                
-
-                if metin:
-                    # Metin verisini ikinci soket üzerinden gönder
-                    self.client_socket_text.send(bytes(metin, "utf-8")) #metni utf-8 koduyla gönderiyoruz
-                    self.server_erkek.metin_yeri.clear()
-
-                    selected_efect = self.server_erkek.efek_combobox.currentIndex()
-                    selected_efect_bytes = selected_efect.to_bytes(10, byteorder="big")  # seçilen efekt indexini 10 byte olarak gönder
-                    self.client_socket_text.send(selected_efect_bytes)
-                    print("Metin gönderildi:", metin)
-            except Exception as e:
-                print("metin gönderme işlemi duraklatıldı...", e)
-                # Bağlantı hatası oluştuğunda, tekrar bağlantı kurmak için bayrağı False yap
-                self.metin_flag = False
-                # Socketi kapat ve yeniden bağlantıyı kurmak için çağrı yap
-                if self.client_socket_text:
-                    self.client_socket_text.close()"""
-        
 
             #################******######################
     def yazi_gonder_t(self):
 
         t1 = threading.Thread(target=self.yazi_gonder)
         t1.start()
+
+
+    from cryptography.fernet import Fernet
+
+    def generate_key(self):
+        return Fernet.generate_key()
+
+    def encrypt_message(self,message, key):
+        cipher_suite = Fernet(key)
+        encrypted_message = cipher_suite.encrypt(message.encode())
+        return encrypted_message
 
 app = QApplication([])
 window = server_erkek_page()
