@@ -18,11 +18,14 @@ class Ui_Form(object):
         Form.setMinimumSize(QtCore.QSize(1021, 750))
         Form.setStyleSheet("color:white;\n"
 "background: #404040;")
-        self.ip_tara = QtWidgets.QPushButton(Form)
-        self.ip_tara.setGeometry(QtCore.QRect(210, 60, 91, 31))
-        self.ip_tara.setStyleSheet("/* Normal durum için */\n"
+        self.settings = QtCore.QSettings('YourCompany', 'YourApp')
+        self.settingsButton = QtWidgets.QPushButton('', Form)
+        #self.settingsButton.setGeometry(QtCore.QRect(10, 10, 91, 31))
+        self.settingsButton.clicked.connect(self.openSettings)
+        self.settingsButton.setGeometry(QtCore.QRect(780, 180, 139, 31))
+        self.settingsButton.setStyleSheet("/* Normal durum için */\n"
 "QPushButton {\n"
-"    background-color: #666a72; /* İlk renk */\n"
+"    background-color: #0099cc; /* İlk renk */\n"
 "    color: #ffffff; /* Metin rengi */\n"
 "    border-radius:15px;\n"
 "}\n"
@@ -30,18 +33,46 @@ class Ui_Form(object):
 "/* Üzerine gelindiğinde */\n"
 "QPushButton:hover {\n"
 "    background-color: #0d730d; /* İkinci renk */\n"
-"    \n"
+"\n"
 "}\n"
 "\n"
 "/* Tıklandığında */\n"
 "QPushButton:pressed {\n"
-"    background-color: #ffcc00; /* Üçüncü renk */\n"
+"    background-color: #0066cc; /* Üçüncü renk */\n"
 "    color: #000000; /* Tıklandığında metin rengini değiştirin, örneğin siyah yapın */\n"
 "}\n"
 "\n"
 "/* Tıklandıktan sonraki durum için (örneğin, bir toggle düğmesi) */\n"
 "QPushButton:checked {\n"
-"    background-color: #9932CC; /* Dördüncü renk */\n"
+"    background-color: #0066cc; /* Dördüncü renk */\n"
+"    color: #ffffff; /* Tıklandıktan sonraki durumda metin rengini değiştirin */\n"
+"}")
+
+
+        self.ip_tara = QtWidgets.QPushButton(Form)
+        self.ip_tara.setGeometry(QtCore.QRect(210, 60, 91, 31))
+        self.ip_tara.setStyleSheet("/* Normal durum için */\n"
+"QPushButton {\n"
+"    background-color: #0099cc; /* İlk renk */\n"
+"    color: #ffffff; /* Metin rengi */\n"
+"    border-radius:15px;\n"
+"}\n"
+"\n"
+"/* Üzerine gelindiğinde */\n"
+"QPushButton:hover {\n"
+"    background-color: #0d730d; /* İkinci renk */\n"
+"\n"
+"}\n"
+"\n"
+"/* Tıklandığında */\n"
+"QPushButton:pressed {\n"
+"    background-color: #0066cc; /* Üçüncü renk */\n"
+"    color: #000000; /* Tıklandığında metin rengini değiştirin, örneğin siyah yapın */\n"
+"}\n"
+"\n"
+"/* Tıklandıktan sonraki durum için (örneğin, bir toggle düğmesi) */\n"
+"QPushButton:checked {\n"
+"    background-color: #0066cc; /* Dördüncü renk */\n"
 "    color: #ffffff; /* Tıklandıktan sonraki durumda metin rengini değiştirin */\n"
 "}")
         self.ip_tara.setObjectName("ip_tara")
@@ -58,7 +89,7 @@ class Ui_Form(object):
         self.Baslat_buton.setGeometry(QtCore.QRect(70, 30, 121, 31))
         self.Baslat_buton.setStyleSheet("/* Normal durum için */\n"
 "QPushButton {\n"
-"    background-color: #95A5A6; /* İlk renk */\n"
+"    background-color: #0099cc; /* İlk renk */\n"
 "    color: #ffffff; /* Metin rengi */\n"
 "    border-radius:15px;\n"
 "}\n"
@@ -71,13 +102,13 @@ class Ui_Form(object):
 "\n"
 "/* Tıklandığında */\n"
 "QPushButton:pressed {\n"
-"    background-color: #ffcc00; /* Üçüncü renk */\n"
+"    background-color: #0066cc; /* Üçüncü renk */\n"
 "    color: #000000; /* Tıklandığında metin rengini değiştirin, örneğin siyah yapın */\n"
 "}\n"
 "\n"
 "/* Tıklandıktan sonraki durum için (örneğin, bir toggle düğmesi) */\n"
 "QPushButton:checked {\n"
-"    background-color: #9932CC; /* Dördüncü renk */\n"
+"    background-color: #0066cc; /* Dördüncü renk */\n"
 "    color: #ffffff; /* Tıklandıktan sonraki durumda metin rengini değiştirin */\n"
 "}")
         self.Baslat_buton.setObjectName("Baslat_buton")
@@ -85,7 +116,7 @@ class Ui_Form(object):
         self.Ses_a_devaml_buton.setGeometry(QtCore.QRect(70, 90, 121, 31))
         self.Ses_a_devaml_buton.setStyleSheet("/* Normal durum için */\n"
 "QPushButton {\n"
-"    background-color: #95A5A6; /* İlk renk */\n"
+"    background-color: #0099cc; /* İlk renk */\n"
 "    color: #ffffff; /* Metin rengi */\n"
 "    border-radius:15px;\n"
 "}\n"
@@ -93,18 +124,18 @@ class Ui_Form(object):
 "/* Üzerine gelindiğinde */\n"
 "QPushButton:hover {\n"
 "    background-color: #0d730d; /* İkinci renk */\n"
-"    \n"
+"\n"
 "}\n"
 "\n"
 "/* Tıklandığında */\n"
 "QPushButton:pressed {\n"
-"    background-color: #ffcc00; /* Üçüncü renk */\n"
+"    background-color: #0066cc; /* Üçüncü renk */\n"
 "    color: #000000; /* Tıklandığında metin rengini değiştirin, örneğin siyah yapın */\n"
 "}\n"
 "\n"
 "/* Tıklandıktan sonraki durum için (örneğin, bir toggle düğmesi) */\n"
 "QPushButton:checked {\n"
-"    background-color: #9932CC; /* Dördüncü renk */\n"
+"    background-color: #0066cc; /* Dördüncü renk */\n"
 "    color: #ffffff; /* Tıklandıktan sonraki durumda metin rengini değiştirin */\n"
 "}")
         self.Ses_a_devaml_buton.setObjectName("Ses_a_devaml_buton")
@@ -112,7 +143,7 @@ class Ui_Form(object):
         self.baglantiyi_kes_buton.setGeometry(QtCore.QRect(70, 150, 121, 31))
         self.baglantiyi_kes_buton.setStyleSheet("/* Normal durum için */\n"
 "QPushButton {\n"
-"    background-color: #95A5A6; /* İlk renk */\n"
+"    background-color: #0099cc; /* İlk renk */\n"
 "    color: #ffffff; /* Metin rengi */\n"
 "    border-radius:15px;\n"
 "}\n"
@@ -120,18 +151,18 @@ class Ui_Form(object):
 "/* Üzerine gelindiğinde */\n"
 "QPushButton:hover {\n"
 "    background-color: #0d730d; /* İkinci renk */\n"
-"    \n"
+"\n"
 "}\n"
 "\n"
 "/* Tıklandığında */\n"
 "QPushButton:pressed {\n"
-"    background-color: #ffcc00; /* Üçüncü renk */\n"
+"    background-color: #0066cc; /* Üçüncü renk */\n"
 "    color: #000000; /* Tıklandığında metin rengini değiştirin, örneğin siyah yapın */\n"
 "}\n"
 "\n"
 "/* Tıklandıktan sonraki durum için (örneğin, bir toggle düğmesi) */\n"
 "QPushButton:checked {\n"
-"    background-color: #9932CC; /* Dördüncü renk */\n"
+"    background-color: #0066cc; /* Dördüncü renk */\n"
 "    color: #ffffff; /* Tıklandıktan sonraki durumda metin rengini değiştirin */\n"
 "}")
         self.baglantiyi_kes_buton.setObjectName("baglantiyi_kes_buton")
@@ -146,7 +177,7 @@ class Ui_Form(object):
         self.hoparlo_sec_button.setGeometry(QtCore.QRect(100, 240, 93, 31))
         self.hoparlo_sec_button.setStyleSheet("/* Normal durum için */\n"
 "QPushButton {\n"
-"    background-color: #95A5A6; /* İlk renk */\n"
+"    background-color: #0099cc; /* İlk renk */\n"
 "    color: #ffffff; /* Metin rengi */\n"
 "    border-radius:15px;\n"
 "}\n"
@@ -154,18 +185,18 @@ class Ui_Form(object):
 "/* Üzerine gelindiğinde */\n"
 "QPushButton:hover {\n"
 "    background-color: #0d730d; /* İkinci renk */\n"
-"    \n"
+"\n"
 "}\n"
 "\n"
 "/* Tıklandığında */\n"
 "QPushButton:pressed {\n"
-"    background-color: #ffcc00; /* Üçüncü renk */\n"
+"    background-color: #0066cc; /* Üçüncü renk */\n"
 "    color: #000000; /* Tıklandığında metin rengini değiştirin, örneğin siyah yapın */\n"
 "}\n"
 "\n"
 "/* Tıklandıktan sonraki durum için (örneğin, bir toggle düğmesi) */\n"
 "QPushButton:checked {\n"
-"    background-color: #9932CC; /* Dördüncü renk */\n"
+"    background-color: #0066cc; /* Dördüncü renk */\n"
 "    color: #ffffff; /* Tıklandıktan sonraki durumda metin rengini değiştirin */\n"
 "}")
         self.hoparlo_sec_button.setObjectName("hoparlo_sec_button")
@@ -187,7 +218,7 @@ class Ui_Form(object):
         self.sesli_yaz_buton.setGeometry(QtCore.QRect(50, 180, 93, 31))
         self.sesli_yaz_buton.setStyleSheet("/* Normal durum için */\n"
 "QPushButton {\n"
-"    background-color: #95A5A6; /* İlk renk */\n"
+"    background-color: #0099cc; /* İlk renk */\n"
 "    color: #ffffff; /* Metin rengi */\n"
 "    border-radius:15px;\n"
 "}\n"
@@ -195,18 +226,18 @@ class Ui_Form(object):
 "/* Üzerine gelindiğinde */\n"
 "QPushButton:hover {\n"
 "    background-color: #0d730d; /* İkinci renk */\n"
-"    \n"
+"\n"
 "}\n"
 "\n"
 "/* Tıklandığında */\n"
 "QPushButton:pressed {\n"
-"    background-color: #ffcc00; /* Üçüncü renk */\n"
+"    background-color: #0066cc; /* Üçüncü renk */\n"
 "    color: #000000; /* Tıklandığında metin rengini değiştirin, örneğin siyah yapın */\n"
 "}\n"
 "\n"
 "/* Tıklandıktan sonraki durum için (örneğin, bir toggle düğmesi) */\n"
 "QPushButton:checked {\n"
-"    background-color: #9932CC; /* Dördüncü renk */\n"
+"    background-color: #0066cc; /* Dördüncü renk */\n"
 "    color: #ffffff; /* Tıklandıktan sonraki durumda metin rengini değiştirin */\n"
 "}")
         self.sesli_yaz_buton.setObjectName("sesli_yaz_buton")
@@ -214,7 +245,7 @@ class Ui_Form(object):
         self.Gonder_buton.setGeometry(QtCore.QRect(120, 270, 93, 31))
         self.Gonder_buton.setStyleSheet("/* Normal durum için */\n"
 "QPushButton {\n"
-"    background-color: #95A5A6; /* İlk renk */\n"
+"    background-color: #0099cc; /* İlk renk */\n"
 "    color: #ffffff; /* Metin rengi */\n"
 "    border-radius:15px;\n"
 "}\n"
@@ -227,13 +258,13 @@ class Ui_Form(object):
 "\n"
 "/* Tıklandığında */\n"
 "QPushButton:pressed {\n"
-"    background-color: #ffcc00; /* Üçüncü renk */\n"
+"    background-color: #0066cc; /* Üçüncü renk */\n"
 "    color: #000000; /* Tıklandığında metin rengini değiştirin, örneğin siyah yapın */\n"
 "}\n"
 "\n"
 "/* Tıklandıktan sonraki durum için (örneğin, bir toggle düğmesi) */\n"
 "QPushButton:checked {\n"
-"    background-color: #9932CC; /* Dördüncü renk */\n"
+"    background-color: #0066cc; /* Dördüncü renk */\n"
 "    color: #ffffff; /* Tıklandıktan sonraki durumda metin rengini değiştirin */\n"
 "}")
         self.Gonder_buton.setObjectName("Gonder_buton")
@@ -241,7 +272,7 @@ class Ui_Form(object):
         self.sesli_yaz_durdur_buton.setGeometry(QtCore.QRect(180, 180, 131, 31))
         self.sesli_yaz_durdur_buton.setStyleSheet("/* Normal durum için */\n"
 "QPushButton {\n"
-"    background-color: #95A5A6; /* İlk renk */\n"
+"    background-color: #0099cc; /* İlk renk */\n"
 "    color: #ffffff; /* Metin rengi */\n"
 "    border-radius:15px;\n"
 "}\n"
@@ -249,18 +280,18 @@ class Ui_Form(object):
 "/* Üzerine gelindiğinde */\n"
 "QPushButton:hover {\n"
 "    background-color: #0d730d; /* İkinci renk */\n"
-"    \n"
+"\n"
 "}\n"
 "\n"
 "/* Tıklandığında */\n"
 "QPushButton:pressed {\n"
-"    background-color: #ffcc00; /* Üçüncü renk */\n"
+"    background-color: #0066cc; /* Üçüncü renk */\n"
 "    color: #000000; /* Tıklandığında metin rengini değiştirin, örneğin siyah yapın */\n"
 "}\n"
 "\n"
 "/* Tıklandıktan sonraki durum için (örneğin, bir toggle düğmesi) */\n"
 "QPushButton:checked {\n"
-"    background-color: #9932CC; /* Dördüncü renk */\n"
+"    background-color: #0066cc; /* Dördüncü renk */\n"
 "    color: #ffffff; /* Tıklandıktan sonraki durumda metin rengini değiştirin */\n"
 "}")
         self.sesli_yaz_durdur_buton.setObjectName("sesli_yaz_durdur_buton")
@@ -282,7 +313,7 @@ class Ui_Form(object):
         self.Dosya_gonder_buton.setGeometry(QtCore.QRect(220, 270, 61, 31))
         self.Dosya_gonder_buton.setStyleSheet("/* Normal durum için */\n"
 "QPushButton {\n"
-"    background-color: #95A5A6; /* İlk renk */\n"
+"    background-color: #0099cc; /* İlk renk */\n"
 "    color: #ffffff; /* Metin rengi */\n"
 "    border-radius:15px;\n"
 "}\n"
@@ -290,18 +321,18 @@ class Ui_Form(object):
 "/* Üzerine gelindiğinde */\n"
 "QPushButton:hover {\n"
 "    background-color: #0d730d; /* İkinci renk */\n"
-"    \n"
+"\n"
 "}\n"
 "\n"
 "/* Tıklandığında */\n"
 "QPushButton:pressed {\n"
-"    background-color: #ffcc00; /* Üçüncü renk */\n"
+"    background-color: #0066cc; /* Üçüncü renk */\n"
 "    color: #000000; /* Tıklandığında metin rengini değiştirin, örneğin siyah yapın */\n"
 "}\n"
 "\n"
 "/* Tıklandıktan sonraki durum için (örneğin, bir toggle düğmesi) */\n"
 "QPushButton:checked {\n"
-"    background-color: #9932CC; /* Dördüncü renk */\n"
+"    background-color: #0066cc; /* Dördüncü renk */\n"
 "    color: #ffffff; /* Tıklandıktan sonraki durumda metin rengini değiştirin */\n"
 "}")
         self.Dosya_gonder_buton.setText("")
@@ -318,7 +349,7 @@ class Ui_Form(object):
         self.ogr_hoparlor_liste_ac.setGeometry(QtCore.QRect(90, 20, 141, 31))
         self.ogr_hoparlor_liste_ac.setStyleSheet("/* Normal durum için */\n"
 "QPushButton {\n"
-"    background-color: #95A5A6; /* İlk renk */\n"
+"    background-color: #0099cc; /* İlk renk */\n"
 "    color: #ffffff; /* Metin rengi */\n"
 "    border-radius:15px;\n"
 "}\n"
@@ -331,13 +362,13 @@ class Ui_Form(object):
 "\n"
 "/* Tıklandığında */\n"
 "QPushButton:pressed {\n"
-"    background-color: #ffcc00; /* Üçüncü renk */\n"
+"    background-color: #0066cc; /* Üçüncü renk */\n"
 "    color: #000000; /* Tıklandığında metin rengini değiştirin, örneğin siyah yapın */\n"
 "}\n"
 "\n"
 "/* Tıklandıktan sonraki durum için (örneğin, bir toggle düğmesi) */\n"
 "QPushButton:checked {\n"
-"    background-color: #9932CC; /* Dördüncü renk */\n"
+"    background-color: #0066cc; /* Dördüncü renk */\n"
 "    color: #ffffff; /* Tıklandıktan sonraki durumda metin rengini değiştirin */\n"
 "}")
         self.ogr_hoparlor_liste_ac.setObjectName("ogr_hoparlor_liste_ac")
@@ -351,7 +382,7 @@ class Ui_Form(object):
         self.ogrenci_hoparlor_sec.setGeometry(QtCore.QRect(120, 210, 93, 31))
         self.ogrenci_hoparlor_sec.setStyleSheet("/* Normal durum için */\n"
 "QPushButton {\n"
-"    background-color: #95A5A6; /* İlk renk */\n"
+"    background-color: #0099cc; /* İlk renk */\n"
 "    color: #ffffff; /* Metin rengi */\n"
 "    border-radius:15px;\n"
 "}\n"
@@ -359,18 +390,18 @@ class Ui_Form(object):
 "/* Üzerine gelindiğinde */\n"
 "QPushButton:hover {\n"
 "    background-color: #0d730d; /* İkinci renk */\n"
-"    \n"
+"\n"
 "}\n"
 "\n"
 "/* Tıklandığında */\n"
 "QPushButton:pressed {\n"
-"    background-color: #ffcc00; /* Üçüncü renk */\n"
+"    background-color: #0066cc; /* Üçüncü renk */\n"
 "    color: #000000; /* Tıklandığında metin rengini değiştirin, örneğin siyah yapın */\n"
 "}\n"
 "\n"
 "/* Tıklandıktan sonraki durum için (örneğin, bir toggle düğmesi) */\n"
 "QPushButton:checked {\n"
-"    background-color: #9932CC; /* Dördüncü renk */\n"
+"    background-color: #0066cc; /* Dördüncü renk */\n"
 "    color: #ffffff; /* Tıklandıktan sonraki durumda metin rengini değiştirin */\n"
 "}")
         self.ogrenci_hoparlor_sec.setObjectName("ogrenci_hoparlor_sec")
@@ -378,7 +409,7 @@ class Ui_Form(object):
         self.hoparlor_liste_ac.setGeometry(QtCore.QRect(780, 140, 131, 31))
         self.hoparlor_liste_ac.setStyleSheet("/* Normal durum için */\n"
 "QPushButton {\n"
-"    background-color: #95A5A6; /* İlk renk */\n"
+"    background-color: #0099cc; /* İlk renk */\n"
 "    color: #ffffff; /* Metin rengi */\n"
 "    border-radius:15px;\n"
 "}\n"
@@ -386,18 +417,18 @@ class Ui_Form(object):
 "/* Üzerine gelindiğinde */\n"
 "QPushButton:hover {\n"
 "    background-color: #0d730d; /* İkinci renk */\n"
-"    \n"
+"\n"
 "}\n"
 "\n"
 "/* Tıklandığında */\n"
 "QPushButton:pressed {\n"
-"    background-color: #ffcc00; /* Üçüncü renk */\n"
+"    background-color: #0066cc; /* Üçüncü renk */\n"
 "    color: #000000; /* Tıklandığında metin rengini değiştirin, örneğin siyah yapın */\n"
 "}\n"
 "\n"
 "/* Tıklandıktan sonraki durum için (örneğin, bir toggle düğmesi) */\n"
 "QPushButton:checked {\n"
-"    background-color: #9932CC; /* Dördüncü renk */\n"
+"    background-color: #0066cc; /* Dördüncü renk */\n"
 "    color: #ffffff; /* Tıklandıktan sonraki durumda metin rengini değiştirin */\n"
 "}")
         self.hoparlor_liste_ac.setObjectName("hoparlor_liste_ac")
@@ -409,7 +440,7 @@ class Ui_Form(object):
         self.baglanti_kur.setGeometry(QtCore.QRect(330, 60, 93, 31))
         self.baglanti_kur.setStyleSheet("/* Normal durum için */\n"
 "QPushButton {\n"
-"    background-color: #95A5A6; /* İlk renk */\n"
+"    background-color: #0099cc; /* İlk renk */\n"
 "    color: #ffffff; /* Metin rengi */\n"
 "    border-radius:15px;\n"
 "}\n"
@@ -417,18 +448,18 @@ class Ui_Form(object):
 "/* Üzerine gelindiğinde */\n"
 "QPushButton:hover {\n"
 "    background-color: #0d730d; /* İkinci renk */\n"
-"    \n"
+"\n"
 "}\n"
 "\n"
 "/* Tıklandığında */\n"
 "QPushButton:pressed {\n"
-"    background-color: #ffcc00; /* Üçüncü renk */\n"
+"    background-color: #0066cc; /* Üçüncü renk */\n"
 "    color: #000000; /* Tıklandığında metin rengini değiştirin, örneğin siyah yapın */\n"
 "}\n"
 "\n"
 "/* Tıklandıktan sonraki durum için (örneğin, bir toggle düğmesi) */\n"
 "QPushButton:checked {\n"
-"    background-color: #9932CC; /* Dördüncü renk */\n"
+"    background-color: #0066cc; /* Dördüncü renk */\n"
 "    color: #ffffff; /* Tıklandıktan sonraki durumda metin rengini değiştirin */\n"
 "}")
         self.baglanti_kur.setObjectName("baglanti_kur")
@@ -461,6 +492,28 @@ class Ui_Form(object):
         self.retranslateUi(Form)
         QtCore.QMetaObject.connectSlotsByName(Form)
 
+
+
+        self.settings_dialog = QtWidgets.QDialog()
+
+        # Pencere başlığı ve boyutu
+        self.settings_dialog.setWindowTitle("Ayarlar")
+        self.settings_dialog.setGeometry(800, 400, 700, 400)
+        self.settings_dialog.setStyleSheet("color:white;\n"
+"background: #404040;")
+        self.hoparor_secim_frame.setParent(self.settings_dialog)
+        self.hoparor_secim_frame.setGeometry(QtCore.QRect(20, 20, 291, 291))
+
+        # "ogrenci_hoparlor_liste" ve "hoparlor_liste" widget'larını yeni pencereye taşı
+        self.groupBox.setParent(self.settings_dialog)
+        self.groupBox.setGeometry(QtCore.QRect(320, 30, 341, 241))
+
+        # Yeni pencereyi gizle
+        self.settings_dialog.hide()
+
+
+
+
     def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate
         Form.setWindowTitle(_translate("Form", "Form"))
@@ -482,6 +535,28 @@ class Ui_Form(object):
         self.label_6.setText(_translate("Form", "Oda Kodu:"))
         self.label_3.setText(_translate("Form", "Hoparlör seçimi"))
         self.label_4.setText(_translate("Form", "IP Adresin"))
+
+
+    def openSettings(self):
+        # Ayarlar penceresini oluştur
+        self.settings_dialog.show()
+        """settings_dialog = QtWidgets.QDialog()
+
+        # Pencere başlığı ve boyutu
+        settings_dialog.setWindowTitle("Ayarlar")
+        settings_dialog.setGeometry(100, 100, 400, 300)
+
+        # "ogrenci_hoparlor_liste" ve "hoparlor_liste" widget'larını yeni pencereye taşı
+        self.hoparor_secim_frame.setParent(settings_dialog)
+        self.hoparor_secim_frame.setGeometry(QtCore.QRect(20, 30, 291, 291))
+        self.hoparor_secim_frame.show()
+
+        self.groupBox.setParent(settings_dialog)
+        self.groupBox.setGeometry(QtCore.QRect(320, 30, 341, 241))
+        self.groupBox.show()
+
+        # Yeni pencereyi göster
+        settings_dialog.exec_()"""
 
 
 if __name__ == "__main__":
