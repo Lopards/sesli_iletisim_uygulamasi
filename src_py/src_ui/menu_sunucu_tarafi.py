@@ -57,16 +57,4 @@ class MyWindow(QMainWindow):
 
         # Mevcut menüyü göster
         menu.show()
-
-if __name__ == "__main__":
-    app = QApplication([])
-    window = MyWindow()
-    window.show()
-    app.exec_()
-
-
-"""if __name__ == "__main__":
-    app = QApplication([])
-    window = MyWindow()
-    window.show()
-    app.exec_()"""
+        self.setStyleSheet(f"QMainWindow {{ background-color: {menu.get_background_color()}; }}")
