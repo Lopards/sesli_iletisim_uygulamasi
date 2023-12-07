@@ -263,7 +263,26 @@ class istemci_page(QMainWindow):
         if self.is_running:
             self.is_running = False
 
-    def receive_audio(self):
+    def get_sound(self, data):
+        try:
+            self.p = pyaudio.PyAudio()
+            audio_data = data["data"]
+            print(audio_data)
+           
+            self.stream = self.p.open(format=self.FORMAT,
+                                    channels=self.CHANNELS,
+                                    rate=self.RATE,
+                                    output=True)
+
+            self.stream.write(audio_data)
+        except Exception as e:
+            print("Error:", str(e))
+
+    def ses_al(self):
+        sio.on('get_audio', self.get_sound)
+        sio.emit('get_audio', callback=lambda data: self.get_sound(data)) # flasktan ses almak için denedim şu anda ses verilerini hoparlörde çalamıyorum
+
+    """def receive_audio(self):
         #hoparlor=self.select_output_device()
         
         while not self.output_stream:
@@ -307,7 +326,7 @@ class istemci_page(QMainWindow):
         stream.close()
         self.server_socket.close()
         p.terminate()
-        #şu anda yeniden bağlanmada sorun var hop. listesi gönderilmeli
+        #şu anda yeniden bağlanmada sorun var hop. listesi gönderilmeli"""
 
 
     def get_sound(self):
