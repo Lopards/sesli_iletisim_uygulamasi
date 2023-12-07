@@ -372,9 +372,33 @@ class server_erkek_page(QWidget):
                 pass
             
             #################******######################
+
+    def send_audio(self): # flaska ses verilerini gönderiyorum
+        p = pyaudio.PyAudio()
+        stream = p.open(format=pyaudio.paInt16,
+                        channels=self.CHANNELS,
+                        rate=44100,
+                        input=True,
+                        frames_per_buffer=self.CHUNK)
+
+        try:
+            while True:
+                data = stream.read(self.CHUNK)
+                audio_data = np.frombuffer(data, dtype=np.int16)
+                audio_data = audio_data.tobytes()
+               
+               
+               # sio.emit('audio_data', audio_data)
+                sio.emit('audio_data', {'data': audio_data})
+        except Exception as e:
+            print("hata")
+        finally:
+            stream.stop_stream()
+            stream.close()
+            p.terminate()
     
 
-    def send_audio(self):
+    """def send_audio(self):
         p = pyaudio.PyAudio()
         stream = p.open(format=pyaudio.paInt16,
                         channels=self.CHANNELS,
@@ -422,7 +446,7 @@ class server_erkek_page(QWidget):
         stream.stop_stream()
         stream.close()
         self.client_socket.close()
-        p.terminate()
+        p.terminate()"""
 
             #################******######################
     
