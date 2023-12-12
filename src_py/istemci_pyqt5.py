@@ -263,75 +263,33 @@ class istemci_page(QMainWindow):
         if self.is_running:
             self.is_running = False
 
-    def get_sound(self, data):
-        try:
-            self.p = pyaudio.PyAudio()
-            audio_data = data["data"]
-            print(audio_data)
-           
-            self.stream = self.p.open(format=self.FORMAT,
-                                    channels=self.CHANNELS,
-                                    rate=self.RATE,
-                                    output=True)
-
-            self.stream.write(audio_data)
-        except Exception as e:
-            print("Error:", str(e))
-
-    def ses_al(self):
-        sio.on('get_audio', self.get_sound)
-        sio.emit('get_audio', callback=lambda data: self.get_sound(data)) # flasktan ses almak için denedim şu anda ses verilerini hoparlörde çalamıyorum
-
-    """def receive_audio(self):
-        #hoparlor=self.select_output_device()
-        
-        while not self.output_stream:
-            self.play_button_clicked()
-            
-        p = pyaudio.PyAudio()
-        stream = p.open(format=self.FORMAT,
-                        channels=self.CHANNELS,
-                        rate=self.RATE,
-                        output=True)
-        
-        
-        while self.is_running_recv:
-            
-            try:
-                
-                data = self.server_socket.recv(self.CHUNK)
-                
-                if not data:
-                    break
-
-                if self.Event.is_set() and self.contunie:
-                    #stream.write(data)
-                    
-                    self.play_server_output(data)
-            except Exception as e:
-                if self.server_socket is not None and self.contunie:
-                    print("Bağlantı sıfırlandı... Yeniden bağlanılıyor.\n", e)
-                    self.connect_to_server_Automatic()
-                    
-                    data = self.server_socket.recv(self.CHUNK)
-
-                    if not data:
-                        break
-
-                    if self.Event.is_set() and self.contunie:
-                        stream.write(data)
-                    
-
-        stream.stop_stream()
-        stream.close()
-        self.server_socket.close()
-        p.terminate()
-        #şu anda yeniden bağlanmada sorun var hop. listesi gönderilmeli"""
-
-
     def get_sound(self):
+        try:
+            @sio.on('data1')
+            def ses_al(data):
+                try:
+                    if self.stream is None:
+                        p = pyaudio.PyAudio()
+                        self.stream = p.open(format=self.FORMAT,
+                                            channels=self.CHANNELS,
+                                            rate=self.RATE,
+                                            output=True)
+                    
+                    print(data)
+
+                    self.stream.write(data)
+                except Exception as e:
+                    print("Hata:", str(e))
+"
+        except Exception as e:
+            print("Hata:", str(e))
+
+    
+
+
+    def get_sound_f(self):
         self.is_running_recv = True
-        threading.Thread(target=self.receive_audio).start()
+        threading.Thread(target=self.get_sound).start()
         #self.get_sound_button.config(state="disabled")
     def get_sound_stop(self):
         self.Event.clear()
