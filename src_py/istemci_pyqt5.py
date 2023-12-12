@@ -1,4 +1,5 @@
 from PyQt5.QtWidgets import *
+from PyQt5.QtCore import Qt
 from src_py.src_ui.istemci import Ui_Form
 from PyQt5.QtWidgets import QListWidgetItem
 import threading
@@ -17,6 +18,9 @@ from bs4 import BeautifulSoup
 import socketio
 from cryptography.fernet import Fernet  
 import base64
+import os
+from werkzeug.utils import secure_filename
+from flask import request
 sio = socketio.Client()
 
 class istemci_page(QMainWindow):
@@ -24,30 +28,29 @@ class istemci_page(QMainWindow):
         super().__init__()
         self.istemci = Ui_Form()
         self.istemci.setupUi(self)
-
+        self.background_color = "#404040"
         self.istemci.ip_tara_buton.clicked.connect(self.scan_ip)
         self.istemci.otomatik_baglan_buton.clicked.connect(self.connect_to_server_Automatic)
         self.istemci.manuel_baglan.clicked.connect(self.connect_to_server_Manuel)
 
-        #self.istemci.ses_gonder_buton.clicked.connect(self.start_communication)
-        #self.istemci.Ses_gonder_dur.clicked.connect(self.stop_communication)
-        #self.istemci.Ses_al_buton.clicked.connect(self.get_sound)
-        self.istemci.ses_al_devam.clicked.connect(self.get_sound_continue)
-        #self.istemci.ses_al_duraklat.clicked.connect(self.get_sound_stop)
+        
+       # self.istemci.ses_al_devam.clicked.connect(self.get_sound_continue)
+        
         self.istemci.baglantiyi_kes_buton.clicked.connect(self.disconnect)
-        #self.istemci.metin_okuma_buton.clicked.connect(self.metni_oku)
-        self.istemci.odaya_gir_buton.clicked.connect(self.receive_text_thread)
-        self.istemci.odaya_gir_buton.clicked.connect(self.receive_file2_t)
+        
+        self.istemci.odaya_gir_buton.clicked.connect(self.enter_room)
+        
         
         self.istemci.ses_gonder_buton.setCheckable(True)
-        self.istemci.ses_gonder_buton.clicked.connect(self.is_toggle_microfon)
+        self.istemci.ses_gonder_buton.clicked.connect(self.start_communication)
 
-        self.istemci.ses_al_devam.setCheckable(True)
-        self.istemci.ses_al_devam.clicked.connect(self.is_toggle_headset)
-        self.CHUNK = 512 
+        #self.istemci.ses_al_devam.setCheckable(True)
+        self.istemci.ses_al_devam.clicked.connect(self.get_sound)
+        self.CHUNK = 1024 
         self.FORMAT = pyaudio.paInt16
         self.CHANNELS = 1
-        self.RATE = 22050
+        self.RATE = 44100
+        
 
         self.HOST = None  # Sunucu IP adresi
         self.PORT = 12345  # Sunucu port numarası
@@ -63,12 +66,24 @@ class istemci_page(QMainWindow):
         self.output_stream = None
         self.server_socket = None
         self.stream = None
+        self.p = pyaudio.PyAudio()
+        self.stream = None
+        self.sio = socketio.Client()
 
 
         self.ip_file = "ip_addresses.txt"  # IP adreslerini saklayan dosya adı
-        #self.istemci.ip_listesi.itemDoubleClicked.connect(self.item_double_clicked)
+        self.istemci.ip_listesi.itemDoubleClicked.connect(self.item_double_clicked)
         
         self.ip_listesini_comboboxa_ekle()
+        #self.receive_file()
+        self.istemci.ip_tara_buton.setCursor(Qt.PointingHandCursor)  # Bu satırı ekleyerek mouse işaretçisini değiştir
+        self.istemci.manuel_baglan.setCursor(Qt.PointingHandCursor)
+        self.istemci.otomatik_baglan_buton.setCursor(Qt.PointingHandCursor)
+        self.istemci.odaya_gir_buton.setCursor(Qt.PointingHandCursor)  
+        self.istemci.ses_al_devam.setCursor(Qt.PointingHandCursor)
+        self.istemci.ses_gonder_buton.setCursor(Qt.PointingHandCursor)
+        self.istemci.baglantiyi_kes_buton.setCursor(Qt.PointingHandCursor)
+        
         #self.scan_ip()
     def is_toggle_microfon(self):# ses gönderimini kapatıp açmak için bir fonksiyon
         if self.istemci.ses_gonder_buton.isChecked():
@@ -90,54 +105,47 @@ class istemci_page(QMainWindow):
             print("Kulaklık aktif")
             self.istemci.ses_al_devam.setText("Kulaklık açık")
             self.istemci.ses_al_devam.setStyleSheet("QPushButton {background-color:lightgreen}")
-            self.Event.set()
+            self.get_sound()
+            self.is_running=True
         else:   
             print("Kulaklık pasif")
             self.istemci.ses_al_devam.setText("Kulaklık kapalı")
             self.istemci.ses_al_devam.setStyleSheet("QPushButton {background-color:lightcoral}")
             self.Event.clear()
 
-    def handle_client(self,client_socket):
+    
+    
+    
+
+    def receive_file(self):
         try:
-            # Sunucudan dosya boyutunu al
-            file_size = int(client_socket.recv(1024).decode())
+            print("zz")
 
-            # Dosya adını al
-            file_name = client_socket.recv(1024).decode()
+            @sio.on('receive_file')
+            def receive_file2(data):
+                try:
+                    print("zzzz")
+                    file_name = data['file_name']
+                    file_path = os.path.join('downloads', file_name)
 
-            # Dosyayı al
-            file_data = client_socket.recv(file_size)
+                    with open(file_path, 'wb') as file:
+                        file.write(data['file_data'])
+                    
+                    print("Dosya alındı:", file_name)
+                except Exception as e:
+                    print(f"Hata dosya alınırken: {e}")
 
-            # Dosyayı kaydet
-            with open(file_name, 'wb') as file:
-                file.write(file_data)
-
-            print(f"{file_name} başarıyla kaydedildi.")
         except Exception as e:
-            print("Hata:", e)
-        finally:
-            client_socket.close()
+            print(f"Hata: {e}")
 
-    def receive_file2(self):
-        server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        host = '127.0.0.1'
-        port = 12345
-        server_socket.bind((host, port))
-        server_socket.listen(5)
+            
+    def generate_key(self):
+        return Fernet.generate_key()
 
-        print(f"Sunucu {host}:{port} portunda dinliyor...")
-
-        while True:
-            # İstemci bağlantısını kabul et
-            client_socket, client_address = server_socket.accept()
-            print(f"{client_address} bağlandı.")
-
-            # İstemciye hizmet veren bir thread başlat
-            client_handler = threading.Thread(target=self.handle_client, args=(client_socket,))
-            client_handler.start()
-    def receive_file2_t(self):
-        threading.Thread(target=self.receive_file2).start()
-
+    def encrypt_message(self,message, key):
+        cipher_suite = Fernet(key)
+        encrypted_message = cipher_suite.encrypt(message.encode())
+        return encrypted_message
 
     def decrypt_message(self, encrypted_message, key):
         cipher_suite = Fernet(base64.urlsafe_b64encode(key).decode('utf-8'))
@@ -157,17 +165,15 @@ class istemci_page(QMainWindow):
                 text = message.get('message', '')  # Şifreli mesaj içeriğini al
                 efekt = message.get('efekt', '')  # Efekti al
                 key = message.get('key', '')  # Anahtarı al
-                print(key,text)
+                print(key, text)
                 if text == "has entered the room":
                     pass
                 else:
                     # Mesajı çöz
-                   
-                    #key = base64.urlsafe_b64encode(key).decode('utf-8')
+
                     key = base64.urlsafe_b64decode(key.decode('utf-8'))  # Anahtarı çöz
-                    #key = base64.urlsafe_b64decode(key)  # Anahtarı çöz
                     decrypted_message = self.decrypt_message(text, key)
-                    print(decrypted_message, "zaaaaa")
+                    print(decrypted_message)
                     self.istemci.metin_yeri.insertPlainText(f'Mesaj: {decrypted_message}\n')  # Çözülmüş mesajı pyqt5 alanına ekle
                     if efekt == 0:
                         read_man(decrypted_message)
@@ -180,22 +186,27 @@ class istemci_page(QMainWindow):
                     elif efekt == 4:
                         read_old_man(decrypted_message)
             else:
-                print('Received invalid message:', message)
+                print(message)
+                pass 
+                
 
+    
+    def enter_room(self):
 
-        room = self.istemci.Oda_kodu_yeri.text() 
+        room = self.istemci.Oda_kodu_yeri.text()
         name = "öğrenci"
-
-        sio.connect('http://35.202.241.22:5000', auth={"name": name, "room": room})
-
-        try:
-            while True:
-                pass  # Sürekli olarak mesajları dinlemek için döngüyü sürdürün
-        except KeyboardInterrupt:
-            pass  # Ctrl+C ile çıkış yapılabilir
-
-        sio.disconnect()
+        self.get_sound_f()
+        self.receive_text()
+        sio.connect('http://192.168.1.70:5000', auth={"name": name, "room": room})
         
+        
+        
+      
+        #sio.on('message', handler=handle_message)  # Mesajları dinlemek için handle_message fonksiyonunu bağla
+       
+
+
+
     def receive_text_thread(self):
         ti1 = threading.Thread(target=self.receive_text)
         ti1.start()
@@ -203,66 +214,28 @@ class istemci_page(QMainWindow):
 
     def send_audio(self):
         p = pyaudio.PyAudio()
-
         stream = p.open(format=pyaudio.paInt16,
-                             channels=self.CHANNELS,
-                             rate=self.RATE,
-                             input=True,
-                             frames_per_buffer=self.CHUNK)
+                        channels=1,
+                        rate=44100,
+                        input=True,
+                        frames_per_buffer=1024)
 
-        min_esik_deger = 100
-        max_esik_deger = 850
-
-        while self.is_running:
-            
-            data = stream.read(self.CHUNK)
-            audio_data = np.frombuffer(data, np.int16)
-            
-
-            try:
-                sound_vol = np.abs(audio_data).mean()
-                if min_esik_deger < sound_vol < max_esik_deger: # mikrofona gelen ses verilerin MUTLAK değerinin ortalamasını alarak ses şiddetini buluyoruz. ortalama, eşik değerinden yüksekse ses iletim devam ediyor.
-                    mikrofon = True
+        while True:
+            if self.is_running:
+                data = stream.read(1024)
                 
-                else:
-                    mikrofon  = False
-                    """
-                    gelen ses verisi ortalaması max esik değerin üstünde ise sesin seviyesi azzaltılıyor
-                    eğer ses verisi ortalaması min esik değerin altında ise sesin seviyesi arttırılıyor.
-                    """
-                    if sound_vol > max_esik_deger:
-                        audio_data = (audio_data // 3).astype(np.int16)
-                        mikrofon = True
-                    elif sound_vol < min_esik_deger:
-                        audio_data = (audio_data * 5).astype(np.int16)
-                        mikrofon = True
-
-                if self.is_running and mikrofon:
-                    
-                    self.server_socket.sendall(audio_data)
-                if not self.is_running:
-                    return
-            except Exception as e:
-                if self.server_socket is not None and self.contunie ==True:
-
-                    print("Beklenmedik bir hata oluştu... Lütfen bekleyiniz: ", e)
-                    print("Yeniden bağlanılmaya çalışılıyor.")
-                    self.connect_to_server_Automatic()
-           
-
-        stream.stop_stream()
-        stream.close()
-        p.terminate()
+                audio_data = np.frombuffer(data, dtype=np.int16)
+                sio.emit('audio_data', audio_data.tobytes())
+                
 
     def start_communication(self):
-        if not self.is_running:
-            self.is_running = True
+        
             threading.Thread(target=self.send_audio).start()
     
     def stop_communication(self):
         if self.is_running:
             self.is_running = False
-
+    #@sio.on('audio_data')
     def get_sound(self):
         try:
             @sio.on('data1')
@@ -275,16 +248,22 @@ class istemci_page(QMainWindow):
                                             rate=self.RATE,
                                             output=True)
                     
-                    print(data)
-
-                    self.stream.write(data)
+                    audio_data = data.get('audio_data', b'')
+                    print(audio_data)
+                    self.stream.write(audio_data)
                 except Exception as e:
                     print("Hata:", str(e))
-"
+                """finally:
+                    print("w")
+                    if self.stream is not None:
+                        self.stream.stop_stream()
+                        self.stream.close()"""
         except Exception as e:
-            print("Hata:", str(e))
+            print("Hata1:", str(e))
 
-    
+
+
+
 
 
     def get_sound_f(self):
@@ -550,6 +529,7 @@ class istemci_page(QMainWindow):
             stream.close()
             speaker_stream.stop_stream()
             speaker_stream.close()
+
             p.terminate()
         except socket.error as e:
             pass
@@ -652,7 +632,8 @@ class istemci_page(QMainWindow):
 
         
         #self.play_server_output(data)
-        
+    def get_background_color(self):
+        return self.background_color
 """app = QApplication([])
 window = istemci_page()
 window.show()
