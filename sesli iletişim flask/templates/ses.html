@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mikrofon Kontrolü</title>
+</head>
+<body>
+    <h1>Mikrofon Kontrolü</h1>
+    
+    <div id="voice-chat">
+        <button id="start-button">Başlat</button>
+        <button id="stop-button">Durdur</button>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.3/socket.io.js"></script>
+    <script>
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+        var mediaRecorder = null;
+        
+        socket.on('voice', function(data) {
+            if (data === 'start') {
+                navigator.mediaDevices.getUserMedia({ audio: true }).then(function(stream) {
+                    mediaRecorder = new MediaRecorder(stream);
+                    var audioChunks = [];
+
+                    mediaRecorder.ondataavailable = function(event) {
+                        if (event.data.size > 0) {
+                            audioChunks.push(event.data);
+                        }
+                    };
+
+                    mediaRecorder.onstop = function() {
+                        var audioBlob = new Blob(audioChunks, { type: 'audio/ogg; codecs=opus' });
+                        socket.emit('voice_data', audioBlob);
+                        audioChunks = [];
+                    };
+
+                    mediaRecorder.start();
+                });
+            } else if (data === 'stop') {
+                if (mediaRecorder && mediaRecorder.state === 'recording') {
+                    mediaRecorder.stop();
+                }
+            }
+        });
+        
+        var startButton = document.getElementById('start-button');
+        var stopButton = document.getElementById('stop-button');
+
+        startButton.onclick = function() {
+            socket.emit('start');
+        };
+        
+        stopButton.onclick = function() {
+            socket.emit('stop');
+        };
+    </script>
+</body>
+</html>

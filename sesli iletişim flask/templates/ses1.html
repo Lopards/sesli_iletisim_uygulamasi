@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sesli Sohbet</title>
+</head>
+<body>
+    <h1>Sesli Sohbet</h1>
+    <button id="startButton">Başlat</button>
+    <button id="stopButton">Durdur</button>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.3/socket.io.js"></script>
+    <script>
+        const socket = io.connect('http://localhost:12345'); // Sunucu adresini burada belirtin
+
+        const startButton = document.getElementById('startButton');
+        const stopButton = document.getElementById('stopButton');
+
+        let audioStream = null;
+
+        startButton.addEventListener('click', () => {
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(stream => {
+                    audioStream = stream;
+                    const audioContext = new AudioContext();
+                    const audioSource = audioContext.createMediaStreamSource(stream);
+                    const scriptNode = audioContext.createScriptProcessor(0, 1, 1);
+
+                    scriptNode.onaudioprocess = event => {
+                        const inputData = event.inputBuffer.getChannelData(0);
+                        socket.emit('audio_stream', inputData); // Ses verisini sunucuya iletiyoruz
+
+                        // Ses verisini hoparlörden çal
+                        const outputData = event.outputBuffer.getChannelData(0);
+                        for (let i = 0; i < inputData.length; i++) {
+                            outputData[i] = inputData[i];
+                        }
+                    };
+
+                    audioSource.connect(scriptNode);
+                    scriptNode.connect(audioContext.destination);
+                })
+                .catch(error => {
+                    console.error('Ses akışı başlatılamadı:', error);
+                });
+        });
+
+        stopButton.addEventListener('click', () => {
+            if (audioStream) {
+                audioStream.getTracks().forEach(track => track.stop());
+            }
+        });
+    </script>
+</body>
+</html>
