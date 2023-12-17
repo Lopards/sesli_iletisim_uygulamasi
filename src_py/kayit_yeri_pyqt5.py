@@ -6,99 +6,130 @@ from src_py.secim_ekran_pyqt5 import login_page
 import webbrowser
 import socket
 import requests
-import  datetime
-import time  
-#from src_py.server_erkek_pyqt5 import server_erkek_page
+import datetime
+import time
+import hashlib
+
 class kayit(QMainWindow):
     def __init__(self) -> None:
+        """
+        Kayit sınıfının yapıcı metodudur. PyQt5 temel alınarak oluşturulan bir pencere sınıfını temsil eder.
+        """
         super().__init__()
+
+        # Kayıt sayfasının arayüzünü yükleyin
         self.kayit_sayfasi = Ui_girisyeri()
         self.kayit_sayfasi.setupUi(self)
 
+        # Butonların tıklama olaylarını bağlayın
         self.kayit_sayfasi.pushButton.clicked.connect(self.verify_login)
         self.kayit_sayfasi.kayit_buton.clicked.connect(self.kayit_site)
 
+        # Giriş sayfasını oluşturun
         self.pencere = login_page()
+
+        # Yanlış şifre sayacını sıfırlayın
         self.yanlis_sifre_sayac = 0
 
+        # Veritabanı bağlantısını oluşturun
+        self.connection = self.create_connection()
 
-    def verify_login(self):     
-        ip_address = socket.gethostbyname(socket.gethostname())  
+    def create_connection(self):
+        """
+        MySQL veritabanına bağlantı oluşturur.
+        """
+        return mysql.connector.connect(
+            host="rise.czfoe4l74xhi.eu-central-1.rds.amazonaws.com",
+            user="admin",
+            password="Osmaniye12!",
+            database="rise_data"
+        )
+
+    def verify_password(self, input_password, stored_salt, stored_hashed_password):
+        """
+        Veritabanındaki şifreyi doğrular.
+
+        :param input_password: Girilen şifre
+        :param stored_salt: Veritabanındaki salt değeri
+        :param stored_hashed_password: Veritabanındaki şifrenin hash değeri
+        :return: Şifre doğru ise True, aksi takdirde False
+        """
+        input_salted_password = stored_salt + input_password.encode("utf-8")
+        input_hashed_password = hashlib.sha256(input_salted_password).hexdigest()
+        return input_hashed_password == stored_hashed_password
+
+    def verify_login(self):
+        """
+        Kullanıcı girişini doğrular.
+        """
+        ip_address = socket.gethostbyname(socket.gethostname())
         try:
-            connection = mysql.connector.connect(
-                host="awsveri.cwguyhuwi5xu.eu-north-1.rds.amazonaws.com",
-                user="rise",
-                password="Osmaniye12!",
-                database="kullanici_veri"
-            )
-            cursor = connection.cursor()
-            query = "SELECT * FROM veriler WHERE kullanici_ad = %s AND sifre = %s "
-            
+            cursor = self.connection.cursor()
+
+            # Kullanıcı verilerini veritabanından çek
+            query = "SELECT sifre, salt  FROM veriler WHERE kullanici_ad = %s"
             ID = self.kayit_sayfasi.kullanici_ad_yeri.text()
-            sifre = self.kayit_sayfasi.sifre_yeri.text()
-            #durum = 'çevrimdışı'
-            values = (ID, sifre)
-            try:
-                response = requests.get('https://ipinfo.io')
-                ip_data = response.json()
-                net_ip_adres=ip_data.get('ip')
-               
-            except Exception as e:
-                print(f"Hata: {e}")
-                return None
+            K_sifre = self.kayit_sayfasi.sifre_yeri.text()
+            cursor.execute(query, (ID,))
+            kullanici_verileri = cursor.fetchone()
 
-
-            cursor.execute(query, values)
-            #cursor.execute(durum,ip_address)
-            user = cursor.fetchone()
-            #durum = cursor.fetchone()
-            now = datetime.datetime.now()
-            anlik_tarih = now.strftime("%Y-%m-%d %H:%M")
-            ping_tarih = self.tarih_dogrulama()
-            
-            if anlik_tarih == ping_tarih:
-                print("hesabı başka biri kullanıyor olabilir. Lütfen 1 dakika sonra tekrar deneyiniz")
-            elif user and anlik_tarih != ping_tarih:
-                self.yanlis_sifre_sayac = 0
-                print("giriş yapıldı")
-                self.hide()
-                self.pencere.show()
-                self.ping_timer = QTimer()
-                self.ping_timer.timeout.connect(self.update_ping_date)
-                self.ping_timer.start(2000)  # 60000 milisaniye = 1 dakika
-
+            if kullanici_verileri:
+                # Veritabanındaki şifreyi doğrula
+                sifre = kullanici_verileri[0]
+                salt_str = kullanici_verileri[1]
+                salt_str = salt_str.replace(b"\x00", b"")
+                salt_str_bytes = bytes(salt_str)
+                is_verified = self.verify_password(K_sifre, salt_str_bytes, sifre)
 
                 # Kullanıcının IP adresini al
-                ip_address = socket.gethostbyname(socket.gethostname())
-                
-                # IP adresini veritabanına kaydet
-                cursor = connection.cursor()
-                cursor.execute('UPDATE veriler SET ip_adresi = %s , net_ip = %s WHERE kullanici_ad = %s ', 
-                            (ip_address, net_ip_adres,  ID))  
-                connection.commit()
-                connection.close() #bağlantıyı kapat
+                response = requests.get('https://ipinfo.io')
+                ip_data = response.json()
+                net_ip_adres = ip_data.get('ip')
 
-                return True
-            else:
-                self.yanlis_sifre_sayac += 1
-                print("yanlıs", self.yanlis_sifre_sayac)
+                # Giriş tarihini kontrol et
+                now = datetime.datetime.now()
+                anlik_tarih = now.strftime("%Y-%m-%d %H:%M")
+                ping_tarih = self.tarih_dogrulama()
 
-                if self.yanlis_sifre_sayac == 3:  # 3 kere yanlış şifre veya ID girildiğinde uygulamayı kapat
-                    self.close()
-                return False
+                if is_verified:
+                    print("1")
+                    if anlik_tarih == ping_tarih:
+                        print("Hesabı başka biri kullanıyor olabilir. Lütfen 1 dakika sonra tekrar deneyiniz.")
+                    elif anlik_tarih != ping_tarih:
+                        self.yanlis_sifre_sayac = 0
+                        print("Giriş yapıldı.")
+                        self.hide()
+                        self.pencere.show()
+                        self.ping_timer = QTimer()
+                        self.ping_timer.timeout.connect(self.update_ping_date)
+                        self.ping_timer.start(10000)  # 60000 milisaniye = 1 dakika
+
+                        # Kullanıcının IP adresini ve net IP adresini veritabanına kaydet
+                        cursor = self.connection.cursor()
+                        cursor.execute('UPDATE veriler SET ip_adresi = %s , net_ip = %s WHERE kullanici_ad = %s ',
+                                       (ip_address, net_ip_adres, ID))
+                        self.connection.commit()
+                        #self.connection.close()  # Bağlantıyı kapat
+
+                        return True
+                    else:
+                        print("alow")
+                        self.yanlis_sifre_sayac += 1
+                        print("yanlış", self.yanlis_sifre_sayac)
+
+                        if self.yanlis_sifre_sayac == 3:  # 3 kere yanlış şifre veya ID girildiğinde uygulamayı kapat
+                            self.close()
+
         except mysql.connector.Error as err:
             print("Hata:", err)
             return False
-        
+
     def update_ping_date(self):
+        """
+        Ping tarihini günceller.
+        """
         try:
-            connection = mysql.connector.connect(
-                host="awsveri.cwguyhuwi5xu.eu-north-1.rds.amazonaws.com",
-                user="rise",
-                password="Osmaniye12!",
-                database="kullanici_veri"
-            )
-            cursor = connection.cursor()
+            cursor = self.connection.cursor()
 
             ID = self.kayit_sayfasi.kullanici_ad_yeri.text()
 
@@ -108,51 +139,48 @@ class kayit(QMainWindow):
             # Ping tarihini güncelle
             cursor.execute('UPDATE veriler SET ping_tarih = %s WHERE kullanici_ad = %s ',
                            (today, ID))
-            connection.commit()
-            connection.close()
+            self.connection.commit()
+            #self.connection.close()
         except Exception as e:
             print(f"Hata: {e}")
 
+    def tarih_dogrulama(self):
+        """
+        Kullanıcının son ping tarihini kontrol eder.
 
-    def  tarih_dogrulama(self):
-            
+        :return: Son ping tarihi
+        """
+        # MySQL veritabanına bağlantı oluştur
+        cursor = self.connection.cursor()
 
-            # MySQL veritabanına bağlantı oluşturun
-            connection = mysql.connector.connect(
-                host="awsveri.cwguyhuwi5xu.eu-north-1.rds.amazonaws.com",
-                user="rise",
-                password="Osmaniye12!",
-                database="kullanici_veri"
-            )
+        # SQL sorgusu oluştur ve kullanıcı_adı parametresini kullanarak sorguyu hazırla
+        sql_sorgusu = "SELECT ping_tarih FROM veriler WHERE kullanici_ad = %s"
 
-            # SQL sorgusu oluşturun ve kullanıcı_adı parametresini kullanarak sorguyu hazırlayın
-            sql_sorgusu = "SELECT ping_tarih FROM veriler WHERE kullanici_ad = %s"
+        # Kullanıcı adı parametresini belirt
+        kullanici_ad_param = self.kayit_sayfasi.kullanici_ad_yeri.text()
 
-            # Kullanıcı adı parametresini belirtin
-            kullanici_ad_param = self.kayit_sayfasi.kullanici_ad_yeri.text()
+        # SQL sorgusunu çalıştır
+        cursor = self.connection.cursor()
+        cursor.execute(sql_sorgusu, (kullanici_ad_param,))
 
-            # SQL sorgusunu çalıştırın
-            cursor = connection.cursor()
-            cursor.execute(sql_sorgusu, (kullanici_ad_param,))
+        # Sonucu al
+        sonuc = cursor.fetchone()
 
-            # Sonucu alın
-            sonuc = cursor.fetchone()
+        # Sonucu yazdır veya işle
+        if sonuc:
+            print(f"Kullanıcı {kullanici_ad_param}'in son ping tarihi: {sonuc[0]}")
+            return sonuc[0]
+        else:
+            print(f"Kullanıcı {kullanici_ad_param} bulunamadı veya son ping tarihi bilgisi yok.")
 
-            # Sonucu yazdırın veya işleyin
-            if sonuc:
-                print(f"Kullanıcı {kullanici_ad_param}'in son ping tarihi: {sonuc[0]}")
-                return sonuc[0]
-            else:
-                print(f"Kullanıcı {kullanici_ad_param} bulunamadı veya son ping tarihi bilgisi yok.")
+        # Bağlantıyı kapat
+        self.connection.close()
 
-
-            # Bağlantıyı kapatın
-            connection.close()
-
-        
     def kayit_site(self):
+        """
+        Web sitesine kayıt olma işlemi.
+        """
         #self.hide()
         webbrowser.open('https://mesajlasma-41995f5c6231.herokuapp.com/', new=0)  # Kendi siteme yönlendirir.
-
-        #web_kayit.app.run(debug=True,host="192.168.1.109")  # Flask uygulamasını başlat
+        #web_kayit.app.run(debug=True, host="192.168.1.109")  # Flask uygulamasını başlat
         #self.show()
