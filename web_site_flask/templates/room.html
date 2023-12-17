@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="static/main.css">
+    <title>Room - {{ room_name }}</title>
+</head>
+<body>
+    <header>
+        <h1>Room: {{ room_name }}</h1>
+    </header>
+    <main>
+        <section class="chat">
+            <!-- Chat messages will be displayed here -->
+            <ul class="message-list">
+                <!-- Messages will be added here dynamically using JavaScript -->
+            </ul>
+        </section>
+        <section class="message-input">
+            <!-- Message input form -->
+            <form id="message-form">
+                <input type="text" id="message" placeholder="Type your message..." required>
+                <button type="submit">Send</button>
+            </form>
+        </section>
+    </main>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.2/socket.io.js"></script>
+    <script src="static/main.js"></script>
+</body>
+</html>
