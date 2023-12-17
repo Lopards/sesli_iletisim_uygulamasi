@@ -1,27 +1,29 @@
 # Projemizin Adı
 
-Bu proje, Ameliyat similasyonu için bir "sesli iletişim" uygulamasıdır.
+Bu proje, `Ameliyat similasyonu için bir "sesli iletişim"` uygulamasıdır.
 ## Gerklilikler
 
 - Python 3.x
 - Flask
 - Flask-SocketIO
+- Flask_mysqldb
 - PyQt5
 - socketio
 - numpy
 - pyaudio
 - cryptography : şifreleme için
 ## Kullanım
+1. Uygulamaya kayıt olabilmek için önce ***web_site_flask*** klasöründeki *flask_sunucu.py* dosyasını çalıştırın.
+2. Daha sonra 'Kayıt ol' sekmesinden uygulamaya kayıt olunuz.
+artık kayıt oldunuz Uygulamaya geçiş yapabilirsiniz.
 
-1. Tarayıcıda `http://IP-Adresiniz:5000` adresine gidin.
-2. Ana sayfadaki formu kullanarak bir odaya katılın veya yeni bir oda oluşturun.
-3. 
+
 ### Uygulama üzerinde Kullanım
 
-1. Main_work.py adlı uygulamayı çalıştırdıktan sonra Kayıt ol butonuna tıklayın ve sitede bilgilerinizi girin.
-2. Kayıt işleminizi yaptıktan sonra uygulamada girişinizi yapınız. Doktor - Öğrenci taraflarından birini seçiniz
-3. Doktor tarafı bir oda Kodu oluşturacak, Öğrenci tarafın bu oda kodunu gerekli alana girmesi lazım
-4. Oda kodunu girdikten sonra İletişim başlayacaktır.
+1. Main_work.py adlı uygulamayı çalıştırın ve çıkan arayüzde kullanıcı bilgilerinizi giriniz.
+2. Doktor - Öğrenci taraflarından birini seçiniz
+3. Eğer Doktor tarafını seçerseniz bir oda oluşturabilirsiniz. Bu oda sayesinde odanıza giren Öğrenciler ile sesli ve metinsel olarak iletişime geçebilirsiniz.`Öğrenci tarafı sadece odaya giriş yapabilir,oda kuramaz.`
+5. Öğrenci Oda kodunu gerekli alana girdikten sonra İletişim başlayacaktır.
 
 ## Eklenecek Güncellemeler
 - Hoparlör seçiminin Doktor tarafından yapılmasını internete taşıyacağız
