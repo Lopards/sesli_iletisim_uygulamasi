@@ -39,3 +39,10 @@ artık kayıt oldunuz Uygulamaya geçiş yapabilirsiniz.
 ---
 
 ![Ekran görüntüsü 2023-12-14 123008](https://github.com/Lopards/sesli_iletisim_uygulamasi/assets/101428835/53568526-f426-4399-aa32-bf18912e9b55)
+
+---
+##KAYNAKÇA
+
+altyapı : https://www.youtube.com/watch?v=mkXdvs8H7TA
+
+
