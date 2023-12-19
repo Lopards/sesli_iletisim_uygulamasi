@@ -127,9 +127,13 @@ class server_erkek_page(QWidget):
             )
             icon = QIcon("acikmikrofon.png")
             self.server_erkek.Baslat_buton.setIcon(icon)
+            sayac = 0
             if self.is_running != True:
+                if sayac ==0:
+                    threading.Thread(target=self.send_audio).start()
+                sayac +=1
                 self.is_running = True
-                threading.Thread(target=self.send_audio).start()
+                #threading.Thread(target=self.send_audio).start()
         else:
             print("Ses gönderimi pasif")
             # self.server_erkek.Baslat_buton.setText("Mikrofon kapalı")
@@ -138,6 +142,7 @@ class server_erkek_page(QWidget):
             )
             icon = QIcon("kapali_mic.png")
             self.server_erkek.Baslat_buton.setIcon(icon)
+            self.is_running = False
             if self.is_running:
                 self.is_running = False
 
@@ -175,7 +180,7 @@ class server_erkek_page(QWidget):
 
         # Socket.io üzerinden dosyayı gönder
         with open(file_path, "rb") as file:
-            sio.emit("upload", {"file_name": file_name, "file_data": file.read()})
+            sio.emit("file_upload", {"file_name": file_name, "file_data": file.read()})
         print("Dosya gönderildi")
 
     def oda_ismi(self):  # flask için Oda kodu oluşturuyoruz
@@ -193,7 +198,9 @@ class server_erkek_page(QWidget):
     def enter_room(self):  #  odaya isim ve oda kodu ile giriş yapılıyor
         name = "Doktor"
         room_code = self.oda_ismi()
+    
         print(room_code)
+        sio.on("data2", self.get_sound)
 
         @sio.on("connect")
         def on_connect():
@@ -209,7 +216,7 @@ class server_erkek_page(QWidget):
     def create_room(self, name, room_code):
         print("oda oluşturuldu")
         sio.connect(
-            "http://192.168.1.85:5000"
+            "http://192.168.1.56:5000"
         )  # Flask uygulamanızın adresine göre güncelleyin.
         sio.emit("create_room", {"name": name, "code": room_code})
 
@@ -259,13 +266,14 @@ class server_erkek_page(QWidget):
             channels=self.CHANNELS,
             rate=44100,
             input=True,
+            output= True,
             frames_per_buffer=self.CHUNK,
         )
 
         try:
             while True:
                 if self.is_running != True:
-                    self.is_running = False
+
                     data = stream.read(self.CHUNK)
                     audio_data = np.frombuffer(data, dtype=np.int16)
                     converted_data = signal.resample(
@@ -277,10 +285,10 @@ class server_erkek_page(QWidget):
                     converted_data_bytes = (
                         converted_data.tobytes()
                     )  # ses verisini baytlara donuştur
-                    # audio_data = audio_data.tobytes()
+                    audio_data = audio_data.tobytes()
 
                     sio.emit(
-                        "audio_data", {"audio_data": converted_data_bytes}
+                        "audio_data", {"audio_data": audio_data}
                     )  # Bytlara dönüştürülen ses verilerini 'audio_data' sözcüğü ile emitle emitle
         except Exception as e:
             print("hata")
@@ -294,38 +302,28 @@ class server_erkek_page(QWidget):
 
         #################******######################
 
-    def get_sound(
-        self,
-    ):  # Doktorlar tarafından gönderilen sesleri alıp hoparlöre yönlendiriyoruz.
-        time.sleep(3)
-        try:
+    def get_sound(self, data):
+            try:
+                if self.stream is None:
+                    p = pyaudio.PyAudio()
+                    self.stream = p.open(
+                        format=self.FORMAT,
+                        channels=self.CHANNELS,
+                        rate=self.RATE,
+                        output=True,
+                        frames_per_buffer=1024,
+                    )
 
-            @sio.on("data1")
-            def ses_al(data):
-                try:
-                    if self.stream is None:
-                        p = (
-                            pyaudio.PyAudio()
-                        )  # format-kanal-ve rate lerin sesi gönderen (doktor) tarafıyla uyuşması lazım
-                        self.stream = p.open(
-                            format=self.FORMAT,
-                            channels=self.CHANNELS,
-                            rate=self.RATE,
-                            output=True,
-                        )
-                    if self.is_running_recv:
-                        audio_data = data.get("audio_data", b"")
-                        if audio_data:
-                            print(audio_data)
-                            self.stream.write(audio_data)
-                except Exception as e:
-                    print("Hata:", str(e))
-                    if self.stream is not None:
-                        self.stream.close()
-                        self.stream.stop_stream()
+                audio_data = data.get("audio_data2", b"")
+                    #print(audio_data)
+                print(audio_data)
+                self.stream.write(audio_data)
 
-        except Exception as e:
-            print("Hata1:", str(e))
+            except Exception as e:
+                print("Ses alma hatası:", str(e))
+                """if self.stream is not None:
+                            self.stream.close()
+                            self.stream.stop_stream()"""
 
             ##### ********** ######
 
@@ -337,9 +335,7 @@ class server_erkek_page(QWidget):
 
         ##### ********** ######
 
-        ##### ********** ######
 
-        ##### ********** ######
 
     def hoparlor_liste_ac(self):
         if self.server_erkek.hoparlor_liste_ac.isChecked():
