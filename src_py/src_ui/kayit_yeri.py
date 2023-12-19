@@ -20,6 +20,8 @@ class Ui_girisyeri(object):
         font.setBold(True)
         font.setWeight(75)
         girisyeri.setFont(font)
+        girisyeri.setStyleSheet("color:white;\n"
+"background: #404040;")
         self.centralwidget = QtWidgets.QWidget(girisyeri)
         self.centralwidget.setObjectName("centralwidget")
         self.label = QtWidgets.QLabel(self.centralwidget)
@@ -31,14 +33,41 @@ class Ui_girisyeri(object):
         self.label.setObjectName("label")
         self.groupBox = QtWidgets.QGroupBox(self.centralwidget)
         self.groupBox.setGeometry(QtCore.QRect(10, 60, 291, 201))
+        self.groupBox.setStyleSheet("background: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 #393B3B,stop:1 #121313);\n"
+"color:white;\n"
+"border-radius:20px;")
         self.groupBox.setTitle("")
         self.groupBox.setObjectName("groupBox")
         self.pushButton = QtWidgets.QPushButton(self.groupBox)
-        self.pushButton.setGeometry(QtCore.QRect(110, 160, 93, 28))
+        self.pushButton.setGeometry(QtCore.QRect(110, 157, 101, 31))
         font = QtGui.QFont()
         font.setBold(False)
         font.setWeight(50)
         self.pushButton.setFont(font)
+        self.pushButton.setStyleSheet("/* Normal durum için */\n"
+"QPushButton {\n"
+"    background-color: #95A5A6; /* İlk renk */\n"
+"    color: #ffffff; /* Metin rengi */\n"
+"    border-radius:15px;\n"
+"}\n"
+"\n"
+"/* Üzerine gelindiğinde */\n"
+"QPushButton:hover {\n"
+"    background-color: #0d730d; /* İkinci renk */\n"
+"\n"
+"}\n"
+"\n"
+"/* Tıklandığında */\n"
+"QPushButton:pressed {\n"
+"    background-color: #ffcc00; /* Üçüncü renk */\n"
+"    color: #000000; /* Tıklandığında metin rengini değiştirin, örneğin siyah yapın */\n"
+"}\n"
+"\n"
+"/* Tıklandıktan sonraki durum için (örneğin, bir toggle düğmesi) */\n"
+"QPushButton:checked {\n"
+"    background-color: #9932CC; /* Dördüncü renk */\n"
+"    color: #ffffff; /* Tıklandıktan sonraki durumda metin rengini değiştirin */\n"
+"}")
         self.pushButton.setObjectName("pushButton")
         self.label_2 = QtWidgets.QLabel(self.groupBox)
         self.label_2.setGeometry(QtCore.QRect(20, 20, 121, 16))
@@ -49,25 +78,57 @@ class Ui_girisyeri(object):
         font.setBold(False)
         font.setWeight(50)
         self.kullanici_ad_yeri.setFont(font)
+        self.kullanici_ad_yeri.setStyleSheet("background-color:white;\n"
+"color:black;")
         self.kullanici_ad_yeri.setObjectName("kullanici_ad_yeri")
         self.kullanici_ad_qlabel = QtWidgets.QLabel(self.groupBox)
-        self.kullanici_ad_qlabel.setGeometry(QtCore.QRect(10, 60, 101, 21))
+        self.kullanici_ad_qlabel.setGeometry(QtCore.QRect(10, 60, 81, 21))
         self.kullanici_ad_qlabel.setObjectName("kullanici_ad_qlabel")
         self.sifre_yeri = QtWidgets.QLineEdit(self.groupBox)
         self.sifre_yeri.setGeometry(QtCore.QRect(110, 100, 113, 22))
+        self.sifre_yeri.setStyleSheet("background-color:white;\n"
+"color:black;")
+        self.sifre_yeri.setEchoMode(QtWidgets.QLineEdit.Password)
         self.sifre_yeri.setObjectName("sifre_yeri")
         self.sifre_qlabel = QtWidgets.QLabel(self.groupBox)
-        self.sifre_qlabel.setGeometry(QtCore.QRect(10, 100, 71, 21))
+        self.sifre_qlabel.setGeometry(QtCore.QRect(10, 100, 41, 21))
         self.sifre_qlabel.setObjectName("sifre_qlabel")
         self.groupBox_2 = QtWidgets.QGroupBox(self.centralwidget)
         self.groupBox_2.setGeometry(QtCore.QRect(320, 70, 261, 111))
+        self.groupBox_2.setStyleSheet("background: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 #393B3B,stop:1 #121313);\n"
+"color:white;\n"
+"border-radius:20px;")
         self.groupBox_2.setObjectName("groupBox_2")
         self.kayit_buton = QtWidgets.QPushButton(self.groupBox_2)
-        self.kayit_buton.setGeometry(QtCore.QRect(60, 50, 141, 28))
+        self.kayit_buton.setGeometry(QtCore.QRect(60, 47, 141, 31))
         font = QtGui.QFont()
         font.setBold(False)
         font.setWeight(50)
         self.kayit_buton.setFont(font)
+        self.kayit_buton.setStyleSheet("/* Normal durum için */\n"
+"QPushButton {\n"
+"    background-color: #95A5A6; /* İlk renk */\n"
+"    color: #ffffff; /* Metin rengi */\n"
+"    border-radius:15px;\n"
+"}\n"
+"\n"
+"/* Üzerine gelindiğinde */\n"
+"QPushButton:hover {\n"
+"    background-color: #0d730d; /* İkinci renk */\n"
+"\n"
+"}\n"
+"\n"
+"/* Tıklandığında */\n"
+"QPushButton:pressed {\n"
+"    background-color: #ffcc00; /* Üçüncü renk */\n"
+"    color: #000000; /* Tıklandığında metin rengini değiştirin, örneğin siyah yapın */\n"
+"}\n"
+"\n"
+"/* Tıklandıktan sonraki durum için (örneğin, bir toggle düğmesi) */\n"
+"QPushButton:checked {\n"
+"    background-color: #9932CC; /* Dördüncü renk */\n"
+"    color: #ffffff; /* Tıklandıktan sonraki durumda metin rengini değiştirin */\n"
+"}")
         self.kayit_buton.setObjectName("kayit_buton")
         girisyeri.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(girisyeri)
@@ -84,7 +145,7 @@ class Ui_girisyeri(object):
     def retranslateUi(self, girisyeri):
         _translate = QtCore.QCoreApplication.translate
         girisyeri.setWindowTitle(_translate("girisyeri", "MainWindow"))
-        self.label.setText(_translate("girisyeri", "<html><head/><body><p align=\"center\"><span style=\" font-size:11pt; font-style:italic; color:#ff0c40;\">Üye Girişi</span></p></body></html>"))
+        self.label.setText(_translate("girisyeri", "<html><head/><body><p align=\"center\"><span style=\" font-size:11pt; font-style:italic; text-decoration: underline; color:#ff0c40;\">Üye Girişi</span></p></body></html>"))
         self.pushButton.setText(_translate("girisyeri", "Giriş yap"))
         self.label_2.setText(_translate("girisyeri", "Zaten Üye misiniz"))
         self.kullanici_ad_qlabel.setText(_translate("girisyeri", "<html><head/><body><p><span style=\" font-weight:400;\">Kullanıcı adı :</span></p></body></html>"))
