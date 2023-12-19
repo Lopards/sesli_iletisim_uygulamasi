@@ -102,7 +102,7 @@ class kayit(QMainWindow):
                         self.pencere.show()
                         self.ping_timer = QTimer()
                         self.ping_timer.timeout.connect(self.update_ping_date)
-                        self.ping_timer.start(10000)  # 60000 milisaniye = 1 dakika
+                        self.ping_timer.start(60000)  # 60000 milisaniye = 1 dakika
 
                         # Kullanıcının IP adresini ve net IP adresini veritabanına kaydet
                         cursor = self.connection.cursor()
@@ -181,6 +181,6 @@ class kayit(QMainWindow):
         Web sitesine kayıt olma işlemi.
         """
         #self.hide()
-        webbrowser.open('https://mesajlasma-41995f5c6231.herokuapp.com/', new=0)  # Kendi siteme yönlendirir.
+        webbrowser.open('http://34.30.30.245:5000/index.html', new=0)  # Kendi siteme yönlendirir.
         #web_kayit.app.run(debug=True, host="192.168.1.109")  # Flask uygulamasını başlat
         #self.show()
