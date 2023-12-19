@@ -50,7 +50,10 @@ class istemci_page(QMainWindow):
         self.CHANNELS = 1
         self.RATE = 44100
 
-        
+        self.HOST = None  # Sunucu IP adresi
+        self.PORT = 12345  # Sunucu port numarası
+        self.PORT_TEXT = 12346
+        self.contunie = True
         self.is_running = False
         self.is_running_recv = True
         self.is_reading = False
@@ -62,7 +65,7 @@ class istemci_page(QMainWindow):
         self.server_socket = None
         self.stream = None
         self.p = pyaudio.PyAudio()
-        self.stream = None
+        
         self.sio = socketio.Client()
 
         self.ip_file = "ip_addresses.txt"  # IP adreslerini saklayan dosya adı
@@ -118,26 +121,24 @@ class istemci_page(QMainWindow):
             )
             self.is_running_recv = False
 
-    def receive_file(self):
+    @sio.on("file_uploaded")
+    def receive_file2(data):
         try:
-            print("zz")
+            file_name = data["filename"]  # "file_uploaded" olayında "filename" olarak emit ediliyor
+            file_data_base64 = data["file_data"]
 
-            @sio.on("receive_file")
-            def receive_file2(data):
-                try:
-                    print("zzzz")
-                    file_name = data["file_name"]
-                    file_path = os.path.join("downloads", file_name)
+            # Base64 veriyi çöz
+            #file_data = base64.b64decode(file_data_base64)
+            if not os.path.exists("downloads"):
+                os.makedirs("downloads")
+            file_path = os.path.join("downloads", file_name)
 
-                    with open(file_path, "wb") as file:
-                        file.write(data["file_data"])
+            with open(file_path, "wb") as file:
+                file.write(file_data_base64)
 
-                    print("Dosya alındı:", file_name)
-                except Exception as e:
-                    print(f"Hata dosya alınırken: {e}")
-
+            print("Dosya alındı:", file_name)
         except Exception as e:
-            print(f"Hata: {e}")
+            print(f"Hata dosya alınırken: {e}")
 
     
     def decrypt_message(self, encrypted_message, key):  #gelen şifreli metni ve keyi alıyoruz.   
@@ -188,9 +189,11 @@ class istemci_page(QMainWindow):
         room = self.istemci.Oda_kodu_yeri.text()
         name = "öğrenci"
 
-        self.get_sound()
+        # self.get_sound_f()
         self.receive_text()
-        sio.connect("http://192.168.1.85:5000", auth={"name": name, "room": room})
+        self.start_communication()
+        sio.on("data1", self.get_sound)
+        sio.connect("http://192.168.1.56:5000", auth={"name": name, "room": room})
 
     def receive_text_thread(self):
         ti1 = threading.Thread(target=self.receive_text)
@@ -200,18 +203,30 @@ class istemci_page(QMainWindow):
         p = pyaudio.PyAudio()
         stream = p.open(
             format=pyaudio.paInt16,
-            channels=1,
+            channels=self.CHANNELS,
             rate=44100,
             input=True,
-            frames_per_buffer=1024,
+            frames_per_buffer=self.CHUNK,
         )
 
-        while True:
-            if self.is_running:
-                data = stream.read(1024)
+        try:
+            while True:
+                if self.is_running != True:
 
-                audio_data = np.frombuffer(data, dtype=np.int16)
-                sio.emit("audio_data", audio_data.tobytes())
+                    data = stream.read(self.CHUNK)
+                    audio_data = np.frombuffer(data, dtype=np.int16)
+                    
+                    audio_data = audio_data.tobytes()
+
+                    sio.emit(
+                        "audio_data2", {"audio_data2": audio_data}
+                    )  # Bytlara dönüştürülen ses verilerini 'audio_data' sözcüğü ile emitle emitle
+        except Exception as e:
+            print("hata")
+        finally:
+            stream.stop_stream()
+            stream.close()
+            p.terminate()
 
     def start_communication(self):
         threading.Thread(target=self.send_audio).start()
@@ -219,34 +234,35 @@ class istemci_page(QMainWindow):
     
 
     # @sio.on('audio_data')
-    def get_sound(self): # Doktorlar tarafından gönderilen sesleri alıp hoparlöre yönlendiriyoruz. 
-        time.sleep(3)
-        try:
+    def get_sound(self):
+            try:
+                # Stream'i burada aç
+                p = pyaudio.PyAudio()
+                stream = p.open(
+                    format=self.FORMAT,
+                    channels=self.CHANNELS,
+                    rate=self.RATE,
+                    output=True,
+                )
+                print(stream)
 
-            @sio.on("data1")
-            def ses_al(data):
-                try:
-                    if self.stream is None:
-                        p = pyaudio.PyAudio() # format-kanal-ve rate lerin sesi gönderen (doktor) tarafıyla uyuşması lazım
-                        self.stream = p.open(
-                            format=self.FORMAT,
-                            channels=self.CHANNELS,
-                            rate=self.RATE,
-                            output=True,
-                        )
-                    if self.is_running_recv:
-                        audio_data = data.get("audio_data", b"")
-                        if audio_data:
+                @sio.on("data1")
+                def ses_al(data):
+                    try:
+
+                        while self.is_running_recv and stream is not None:
+                            audio_data = data.get("audio_data", b"")
                             print(audio_data)
-                            self.stream.write(audio_data)
-                except Exception as e:
-                    print("Hata:", str(e))
-                    if self.stream is not None:
-                        self.stream.close()
-                        self.stream.stop_stream()
+                            stream.write(audio_data)
+                        else:
+                            print("------")
+                    except Exception as e:
+                        print("Hata:", str(e))
+            except Exception as e:
+                print("hata",e)
+        
 
-        except Exception as e:
-            print("Hata1:", str(e))
+
 
     def get_sound_f(self):
         self.is_running_recv = True
@@ -352,7 +368,6 @@ class istemci_page(QMainWindow):
 
     def get_background_color(self):
         return self.background_color
-
 
 """app = QApplication([])
 window = istemci_page()
