@@ -90,7 +90,7 @@ class server_erkek_page(QWidget):
         self.metinnn = False
 
         self.is_running = False
-        self.is_running_recv = True
+        self.is_running_recv = False
         self.is_server_active = False
         self.Event = threading.Event()
         self.contunie = True
@@ -106,7 +106,8 @@ class server_erkek_page(QWidget):
         self.ip_file = "ip_addresses.txt"
         self.room_code = ""
         self.stop_event = threading.Event()
-
+        self.sayac = 0
+        self.sayac_kulaklik = 0
         self.hoparlor_liste()
         self.efekt_listele()
         self.ip_tara()
@@ -119,56 +120,50 @@ class server_erkek_page(QWidget):
         # self.server_erkek.Dosya_gonder_buton.setIconSize(icon.actualSize(icon.availableSizes()[0]))
 
     def is_toggle_mic(self):
-        if self.server_erkek.Baslat_buton.isChecked():
-            print("Ses gönderimi aktif")
-            self.server_erkek.Baslat_buton.setText("")
-            self.server_erkek.Baslat_buton.setStyleSheet(
-                "QPushButton {background-color: #0d730d; border-radius:15px;color:white;}"
-            )
-            icon = QIcon("acikmikrofon.png")
-            self.server_erkek.Baslat_buton.setIcon(icon)
-            sayac = 0
-            if self.is_running != True:
-                if sayac ==0:
+            if self.server_erkek.Baslat_buton.isChecked() and not self.is_running:
+                print("Ses gönderimi aktif")
+                self.server_erkek.Baslat_buton.setText("")
+                self.server_erkek.Baslat_buton.setStyleSheet(
+                    "QPushButton {background-color: #ff4040; border-radius:15px;color:white;}"
+                )
+                icon = QIcon("kapali_mic.png")
+                self.server_erkek.Baslat_buton.setIcon(icon)
+                if self.sayac ==0:
                     threading.Thread(target=self.send_audio).start()
-                sayac +=1
+                    self.sayac+=1
+                    print(self.sayac)
                 self.is_running = True
-                #threading.Thread(target=self.send_audio).start()
-        else:
-            print("Ses gönderimi pasif")
-            # self.server_erkek.Baslat_buton.setText("Mikrofon kapalı")
-            self.server_erkek.Baslat_buton.setStyleSheet(
-                "QPushButton {background-color:#ff4040; border-radius:15px;color:white;}"
-            )
-            icon = QIcon("kapali_mic.png")
-            self.server_erkek.Baslat_buton.setIcon(icon)
-            self.is_running = False
-            if self.is_running:
+
+            elif self.server_erkek.Baslat_buton.isChecked() and self.is_running:
+                print("Ses gönderimi pasif")
+                self.server_erkek.Baslat_buton.setStyleSheet(
+                    "QPushButton {background-color:#0d730d; border-radius:15px;color:white;}"
+                )
+                icon = QIcon("acikmikrofon.png")
+                self.server_erkek.Baslat_buton.setIcon(icon)
                 self.is_running = False
 
+
     def is_toggle_headset(self):
-        if self.server_erkek.Ses_a_devaml_buton.isChecked():
-            print("ses alımı aktif")
-            self.server_erkek.Ses_a_devaml_buton.setText("")
-            self.server_erkek.Ses_a_devaml_buton.setStyleSheet(
-                "QPushButton {background-color: #0d730d; border-radius:15px;color:white;}"
-            )
-            icon = QIcon("kulaklik.jpeg")
-            self.server_erkek.Ses_a_devaml_buton.setIcon(icon)
-            self.contunie = True
-            if self.is_running_recv != True:
+            if self.server_erkek.Ses_a_devaml_buton.isChecked() and not self.is_running_recv:
+                print("Ses  aktif")
+                self.server_erkek.Ses_a_devaml_buton.setText("")
+                self.server_erkek.Ses_a_devaml_buton.setStyleSheet(
+                    "QPushButton {background-color: #ff4040; border-radius:15px;color:white;}"
+                )
+                icon = QIcon("kapali_kulaklik.jpg")
+                self.server_erkek.Ses_a_devaml_buton.setIcon(icon)
+               
                 self.is_running_recv = True
-                threading.Thread(target=self.start_get_sound).start()
-            self.Event.set()
-        else:
-            print("Ses alımı pasif")
-            icon = QIcon("kapali_kulaklik.jpg")
-            self.server_erkek.Ses_a_devaml_buton.setIcon(icon)
-            # self.server_erkek.Ses_a_devaml_buton.setText("ses alımı kapalı")
-            self.server_erkek.Ses_a_devaml_buton.setStyleSheet(
-                "QPushButton {background-color:#ff4040; border-radius:15px;color:white;}"
-            )
-            self.Event.clear()
+
+            elif self.server_erkek.Ses_a_devaml_buton.isChecked() and self.is_running_recv:
+                print("Ses  pasif")
+                self.server_erkek.Ses_a_devaml_buton.setStyleSheet(
+                    "QPushButton {background-color:#0d730d; border-radius:15px;color:white;}"
+                )
+                icon = QIcon("kulaklik.jpeg")
+                self.server_erkek.Ses_a_devaml_buton.setIcon(icon)
+                self.is_running_recv = False
 
     def send_file(self):
         file_dialog = QFileDialog()
@@ -316,8 +311,8 @@ class server_erkek_page(QWidget):
 
                 audio_data = data.get("audio_data2", b"")
                     #print(audio_data)
-                print(audio_data)
-                self.stream.write(audio_data)
+                if self.is_running_recv:
+                    self.stream.write(audio_data)
 
             except Exception as e:
                 print("Ses alma hatası:", str(e))
