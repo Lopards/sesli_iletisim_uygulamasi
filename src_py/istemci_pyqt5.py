@@ -8,7 +8,7 @@ import numpy as np
 
 import time
 
-from PyQt5.QtGui import QStandardItem, QStandardItemModel
+from PyQt5.QtGui import QStandardItem, QStandardItemModel,QIcon
 from src_py.src_metin.metin_oku import *
 from PyQt5.QtWidgets import QListWidgetItem
 from PyQt5.QtGui import QColor, QBrush
@@ -41,7 +41,7 @@ class istemci_page(QMainWindow):
         self.istemci.odaya_gir_buton.clicked.connect(self.enter_room)
 
         self.istemci.ses_gonder_buton.setCheckable(True)
-        self.istemci.ses_gonder_buton.clicked.connect(self.start_communication)
+        self.istemci.ses_gonder_buton.clicked.connect(self.is_toggle_mic)
 
         self.istemci.ses_al_devam.setCheckable(True)
         self.istemci.ses_al_devam.clicked.connect(self.is_toggle_headset)
@@ -55,7 +55,7 @@ class istemci_page(QMainWindow):
         self.PORT_TEXT = 12346
         self.contunie = True
         self.is_running = False
-        self.is_running_recv = True
+        self.is_running_recv = False
         self.is_reading = False
         self.Thread = None
 
@@ -65,8 +65,10 @@ class istemci_page(QMainWindow):
         self.server_socket = None
         self.stream = None
         self.p = pyaudio.PyAudio()
-        
+        self.stream = None
         self.sio = socketio.Client()
+        self.sayac_kulaklik =0
+        self.sayac =0
 
         self.ip_file = "ip_addresses.txt"  # IP adreslerini saklayan dosya adı
         self.istemci.ip_listesi.itemDoubleClicked.connect(self.item_double_clicked)
@@ -85,41 +87,53 @@ class istemci_page(QMainWindow):
 
         # self.scan_ip()
 
-    def is_toggle_microfon(self):  # ses gönderimini kapatıp açmak için bir fonksiyon
-        if self.istemci.ses_gonder_buton.isChecked():
-            print("Ses gönderimi aktif")
-            self.istemci.ses_gonder_buton.setText("Mikrofon açık")
-            self.istemci.ses_gonder_buton.setStyleSheet(
-                "QPushButton {background-color:lightgreen}"
-            )
-            if not self.is_running:
+    def is_toggle_mic(self):
+            if self.istemci.ses_gonder_buton.isChecked() and not self.is_running:
+                print("Ses gönderimi aktif")
+                self.istemci.ses_gonder_buton.setText("")
+                self.istemci.ses_gonder_buton.setStyleSheet(
+                    "QPushButton {background-color: #0d730d; border-radius:15px;color:white;}"
+                )
+                icon = QIcon("acikmikrofon.png")
+                self.istemci.ses_gonder_buton.setIcon(icon)
+                if self.sayac ==0:
+                    threading.Thread(target=self.start_communication).start()
+                    self.sayac+=1
+                    print(self.sayac)
                 self.is_running = True
-                threading.Thread(target=self.send_audio).start()
-        else:
-            print("Ses gönderimi pasif")
-            self.istemci.ses_gonder_buton.setText("Mikrofon kapalı")
-            self.istemci.ses_gonder_buton.setStyleSheet(
-                "QPushButton {background-color:lightcoral}"
-            )
-            if self.is_running:
+
+            elif self.istemci.ses_gonder_buton.isChecked() and self.is_running:
+                print("Ses gönderimi pasif")
+                self.istemci.ses_gonder_buton.setStyleSheet(
+                    "QPushButton {background-color:#ff4040; border-radius:15px;color:white;}"
+                )
+                icon = QIcon("kapali_mic.png")
+                self.istemci.ses_gonder_buton.setIcon(icon)
                 self.is_running = False
 
-    def is_toggle_headset(self):  # ses alımını kapatıp açmak için bir fonksiyon
-        if self.istemci.ses_al_devam.isChecked():
-            print("Kulaklık aktif")
-            self.istemci.ses_al_devam.setText("Kulaklık açık")
-            self.istemci.ses_al_devam.setStyleSheet(
-                "QPushButton {background-color:lightgreen}"
-            )
 
-            self.is_running_recv = True
-        else:
-            print("Kulaklık pasif")
-            self.istemci.ses_al_devam.setText("Kulaklık kapalı")
-            self.istemci.ses_al_devam.setStyleSheet(
-                "QPushButton {background-color:lightcoral}"
-            )
-            self.is_running_recv = False
+    def is_toggle_headset(self):
+            if self.istemci.ses_al_devam.isChecked() and not self.is_running_recv:
+                print("Ses gönderimi aktif")
+                self.istemci.ses_al_devam.setText("")
+                self.istemci.ses_al_devam.setStyleSheet(
+                    "QPushButton {background-color: #0d730d; border-radius:15px;color:white;}"
+                )
+                icon = QIcon("kulaklik.jpeg")
+                self.istemci.ses_al_devam.setIcon(icon)
+                
+                print(self.sayac_kulaklik)
+                self.is_running_recv = True
+
+            elif self.istemci.ses_al_devam.isChecked() and self.is_running_recv:
+                print("Ses gönderimi pasif")
+                self.istemci.ses_al_devam.setStyleSheet(
+                    "QPushButton {background-color:#ff4040; border-radius:15px;color:white;}"
+                )
+                icon = QIcon("kapali_kulaklik.jpg")
+                self.istemci.ses_al_devam.setIcon(icon)
+                self.is_running_recv = False
+
 
     @sio.on("file_uploaded")
     def receive_file2(data):
@@ -140,10 +154,15 @@ class istemci_page(QMainWindow):
         except Exception as e:
             print(f"Hata dosya alınırken: {e}")
 
-    
-    def decrypt_message(self, encrypted_message, key):  #gelen şifreli metni ve keyi alıyoruz.   
+
+
+    def decrypt_message(
+        self, encrypted_message, key
+    ):  # gelen şifreli metni ve keyi alıyoruz.
         cipher_suite = Fernet(base64.urlsafe_b64encode(key).decode("utf-8"))
-        decrypted_message = cipher_suite.decrypt(encrypted_message).decode() #şifreleri çözüp normal asıl metnimize ulaşıyoruz
+        decrypted_message = cipher_suite.decrypt(
+            encrypted_message
+        ).decode()  # şifreleri çözüp normal asıl metnimize ulaşıyoruz
         return decrypted_message
 
     def receive_text(self):
@@ -151,7 +170,9 @@ class istemci_page(QMainWindow):
         def connect():
             print("Connected to server")
 
-        @sio.on("message") #flask projesindeki message olayına 'on' ile bağlanıyoruz. bu şekilde mesaj gönderildiğinde handle_message aktif olacak
+        @sio.on(
+            "message"
+        )  # flask projesindeki message olayına 'on' ile bağlanıyoruz. bu şekilde mesaj gönderildiğinde handle_message aktif olacak
         def handle_message(message):
             print(message)
             print("s")
@@ -167,7 +188,7 @@ class istemci_page(QMainWindow):
                     print(key)
                     key = base64.urlsafe_b64decode(key.decode("utf-8"))  # Anahtarı çöz
                     decrypted_message = self.decrypt_message(text, key)
-                    
+
                     self.istemci.metin_yeri.insertPlainText(
                         f"Mesaj: {decrypted_message}\n"
                     )  # Çözülmüş mesajı pyqt5 alanına ekle ve efekte göre okut
@@ -185,13 +206,15 @@ class istemci_page(QMainWindow):
                 print(message)
                 pass
 
-    def enter_room(self):  # flask ile kurulan odaya giriş yapılıyor. Ses ve metin alışverişi başlatılıyor
+    def enter_room(
+        self,
+    ):  # flask ile kurulan odaya giriş yapılıyor. Ses ve metin alışverişi başlatılıyor
         room = self.istemci.Oda_kodu_yeri.text()
         name = "öğrenci"
 
         # self.get_sound_f()
         self.receive_text()
-        self.start_communication()
+        #self.start_communication()
         sio.on("data1", self.get_sound)
         sio.connect("http://192.168.1.56:5000", auth={"name": name, "room": room})
 
@@ -211,7 +234,7 @@ class istemci_page(QMainWindow):
 
         try:
             while True:
-                if self.is_running != True:
+                if self.is_running == True:
 
                     data = stream.read(self.CHUNK)
                     audio_data = np.frombuffer(data, dtype=np.int16)
@@ -231,47 +254,37 @@ class istemci_page(QMainWindow):
     def start_communication(self):
         threading.Thread(target=self.send_audio).start()
 
-    
 
-    # @sio.on('audio_data')
-    def get_sound(self):
-            try:
-                # Stream'i burada aç
+    def get_sound(self, data):
+  
+        try:
+            if self.stream is None :
                 p = pyaudio.PyAudio()
-                stream = p.open(
+                self.stream = p.open(
                     format=self.FORMAT,
                     channels=self.CHANNELS,
                     rate=self.RATE,
                     output=True,
+                    frames_per_buffer=1024,
                 )
-                print(stream)
 
-                @sio.on("data1")
-                def ses_al(data):
-                    try:
+            audio_data = data.get("audio_data", b"")
+                #print(audio_data)
+            if self.is_running_recv:
+                self.stream.write(audio_data)
 
-                        while self.is_running_recv and stream is not None:
-                            audio_data = data.get("audio_data", b"")
-                            print(audio_data)
-                            stream.write(audio_data)
-                        else:
-                            print("------")
-                    except Exception as e:
-                        print("Hata:", str(e))
-            except Exception as e:
-                print("hata",e)
-        
+        except Exception as e:
+            print("Ses alma hatası:", str(e))
 
 
+    
 
     def get_sound_f(self):
         self.is_running_recv = True
         threading.Thread(target=self.get_sound).start()
+
         # self.get_sound_button.config(state="disabled")
 
-    
-
-    
     def item_double_clicked(self, item):
         # Çift tıklanan seçeneğin metnini al
         selected_text = item.text()
@@ -306,8 +319,6 @@ class istemci_page(QMainWindow):
             ) as f:  # Dosyanın içeriğini yeniden yazmak için "w" modunu kullanın
                 for ip in ip_addresses:
                     f.write(ip + "\n")
-
-
 
     def set_output_stream(self, output_device):
         p = pyaudio.PyAudio()
@@ -368,6 +379,7 @@ class istemci_page(QMainWindow):
 
     def get_background_color(self):
         return self.background_color
+
 
 """app = QApplication([])
 window = istemci_page()
