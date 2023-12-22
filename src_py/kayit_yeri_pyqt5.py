@@ -1,16 +1,18 @@
 from PyQt5.QtWidgets import *
-from PyQt5.QtCore import QTimer
+from PyQt5.QtCore import QTimer,pyqtSignal
 import mysql.connector
 from src_py.src_ui.kayit_yeri import Ui_girisyeri
 from src_py.secim_ekran_pyqt5 import login_page
 import webbrowser
-import socket
+import atexit
 import requests
 import datetime
 import time
 import hashlib
-
+kullanici_ad=""
+ 
 class kayit(QMainWindow):
+    kullanici_adi = pyqtSignal(str)
     def __init__(self) -> None:
         """
         Kayit sınıfının yapıcı metodudur. PyQt5 temel alınarak oluşturulan bir pencere sınıfını temsil eder.
@@ -30,9 +32,16 @@ class kayit(QMainWindow):
 
         # Yanlış şifre sayacını sıfırlayın
         self.yanlis_sifre_sayac = 0
-
+        self.kisi_sayisi = 0
         # Veritabanı bağlantısını oluşturun
         self.connection = self.create_connection()
+        atexit.register(self.cloaseEvent)
+
+    def kullanici_ad_signal(self):
+        
+        return kullanici_ad
+        
+        
 
     def create_connection(self):
         """
@@ -62,18 +71,21 @@ class kayit(QMainWindow):
         """
         Kullanıcı girişini doğrular.
         """
-        ip_address = socket.gethostbyname(socket.gethostname())
+        
         try:
             cursor = self.connection.cursor()
 
             # Kullanıcı verilerini veritabanından çek
             query = "SELECT sifre, salt  FROM veriler WHERE kullanici_ad = %s"
             ID = self.kayit_sayfasi.kullanici_ad_yeri.text()
+            
             K_sifre = self.kayit_sayfasi.sifre_yeri.text()
             cursor.execute(query, (ID,))
             kullanici_verileri = cursor.fetchone()
 
             if kullanici_verileri:
+                global kullanici_ad
+                kullanici_ad = ID
                 # Veritabanındaki şifreyi doğrula
                 sifre = kullanici_verileri[0]
                 salt_str = kullanici_verileri[1]
@@ -92,11 +104,13 @@ class kayit(QMainWindow):
                 ping_tarih = self.tarih_dogrulama()
 
                 if is_verified:
-                    print("1")
+                    
                     if anlik_tarih == ping_tarih:
                         print("Hesabı başka biri kullanıyor olabilir. Lütfen 1 dakika sonra tekrar deneyiniz.")
                     elif anlik_tarih != ping_tarih:
                         self.yanlis_sifre_sayac = 0
+                        self.kisi_sayisi +=1
+                        print(self.kisi_sayisi)
                         print("Giriş yapıldı.")
                         self.hide()
                         self.pencere.show()
@@ -106,13 +120,13 @@ class kayit(QMainWindow):
 
                         # Kullanıcının IP adresini ve net IP adresini veritabanına kaydet
                         cursor = self.connection.cursor()
-                        cursor.execute('UPDATE veriler SET ip_adresi = %s , net_ip = %s WHERE kullanici_ad = %s ',
-                                       (ip_address, net_ip_adres, ID))
+                        cursor.execute('UPDATE veriler SET net_ip = %s, kisi_sayisi = %s WHERE kullanici_ad = %s ',
+                                       (net_ip_adres, self.kisi_sayisi, ID))
                         self.connection.commit()
                         #self.connection.close()  # Bağlantıyı kapat
 
                         return True
-                    else:
+                else:
                         print("alow")
                         self.yanlis_sifre_sayac += 1
                         print("yanlış", self.yanlis_sifre_sayac)
@@ -175,6 +189,13 @@ class kayit(QMainWindow):
 
         # Bağlantıyı kapat
         self.connection.close()
+
+    
+    def cloaseEvent(self): #pencere kapatıldığında bu fonksiyon devreye girer ve kullancıı sayisini azaltır.
+        self.kisi_sayisi -=1
+        print(self.kisi_sayisi)
+        
+       
 
     def kayit_site(self):
         """
