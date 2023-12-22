@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QListWidgetItem
 import threading
 import pyaudio
 import numpy as np
-
+import mysql.connector
 import time
 
 from PyQt5.QtGui import QStandardItem, QStandardItemModel,QIcon
@@ -38,7 +38,7 @@ class istemci_page(QMainWindow):
 
         self.istemci.baglantiyi_kes_buton.clicked.connect(self.disconnect)
 
-        self.istemci.odaya_gir_buton.clicked.connect(self.enter_room)
+        self.istemci.odaya_gir_buton.clicked.connect(self.oda_kodu_ID)
 
         self.istemci.ses_gonder_buton.setCheckable(True)
         self.istemci.ses_gonder_buton.clicked.connect(self.is_toggle_mic)
@@ -84,6 +84,7 @@ class istemci_page(QMainWindow):
         self.istemci.ses_al_devam.setCursor(Qt.PointingHandCursor)
         self.istemci.ses_gonder_buton.setCursor(Qt.PointingHandCursor)
         self.istemci.baglantiyi_kes_buton.setCursor(Qt.PointingHandCursor)
+        #self.oda_kodu_ID()
 
         # self.scan_ip()
 
@@ -96,13 +97,15 @@ class istemci_page(QMainWindow):
                 )
                 icon = QIcon("acikmikrofon.png")
                 self.istemci.ses_gonder_buton.setIcon(icon)
-                if self.sayac ==0:
-                    threading.Thread(target=self.start_communication).start()
-                    self.sayac+=1
-                    print(self.sayac)
                 self.is_running = True
+                if self.sayac == 0:
+                    self.sayac += 1
+                    print("send_audio aktif")
+                    self.start_communication()
+                
+                
 
-            elif self.istemci.ses_gonder_buton.isChecked() and self.is_running:
+            else:
                 print("Ses gönderimi pasif")
                 self.istemci.ses_gonder_buton.setStyleSheet(
                     "QPushButton {background-color:#ff4040; border-radius:15px;color:white;}"
@@ -113,8 +116,8 @@ class istemci_page(QMainWindow):
 
 
     def is_toggle_headset(self):
-            if self.istemci.ses_al_devam.isChecked() and not self.is_running_recv:
-                print("Ses gönderimi aktif")
+            if self.istemci.ses_al_devam.isChecked():
+                print("Hoparlör aktif")
                 self.istemci.ses_al_devam.setText("")
                 self.istemci.ses_al_devam.setStyleSheet(
                     "QPushButton {background-color: #0d730d; border-radius:15px;color:white;}"
@@ -125,8 +128,8 @@ class istemci_page(QMainWindow):
                 print(self.sayac_kulaklik)
                 self.is_running_recv = True
 
-            elif self.istemci.ses_al_devam.isChecked() and self.is_running_recv:
-                print("Ses gönderimi pasif")
+            else:
+                print("Hoparlör pasif")
                 self.istemci.ses_al_devam.setStyleSheet(
                     "QPushButton {background-color:#ff4040; border-radius:15px;color:white;}"
                 )
@@ -233,19 +236,17 @@ class istemci_page(QMainWindow):
         )
 
         try:
-            while True:
-                if self.is_running == True:
+           
+                while self.is_running == True:
 
                     data = stream.read(self.CHUNK)
                     audio_data = np.frombuffer(data, dtype=np.int16)
                     
                     audio_data = audio_data.tobytes()
 
-                    sio.emit(
-                        "audio_data2", {"audio_data2": audio_data}
-                    )  # Bytlara dönüştürülen ses verilerini 'audio_data' sözcüğü ile emitle emitle
+                    sio.emit("audio_data2", {"audio_data2": audio_data})  # Bytlara dönüştürülen ses verilerini 'audio_data' sözcüğü ile emitle emitle
         except Exception as e:
-            print("hata")
+            print("hata",e)
         finally:
             stream.stop_stream()
             stream.close()
@@ -267,11 +268,11 @@ class istemci_page(QMainWindow):
                     output=True,
                     frames_per_buffer=1024,
                 )
-
-            audio_data = data.get("audio_data", b"")
-                #print(audio_data)
-            if self.is_running_recv:
-                self.stream.write(audio_data)
+            if data:
+                audio_data = data.get("audio_data", b"")
+                    #print(audio_data)
+                if self.is_running_recv:
+                    self.stream.write(audio_data)
 
         except Exception as e:
             print("Ses alma hatası:", str(e))
@@ -379,6 +380,35 @@ class istemci_page(QMainWindow):
 
     def get_background_color(self):
         return self.background_color
+    
+    def oda_kodu_ID(self):
+        from src_py.kayit_yeri_pyqt5 import kayit # kütüphane kısmında import etmedim çünkü circle hatası veriyordu.
+        self.kullanici_ad = kayit()
+        ID = self.kullanici_ad.kullanici_ad_signal()
+        print(ID)
+        
+
+
+        """
+        MySQL veritabanına bağlantı oluşturur.
+        """
+
+        connection = mysql.connector.connect(
+            host="rise.czfoe4l74xhi.eu-central-1.rds.amazonaws.com",
+            user="admin",
+            password="Osmaniye12!",
+            database="rise_data"
+        )
+        cursor = connection.cursor()
+        query = "SELECT oda_kodu FROM veriler WHERE kullanici_ad = %s"
+        cursor.execute(query, (ID,))
+        kullanici_verileri = cursor.fetchone()
+        
+        connection.commit()
+        connection.close()
+        self.istemci.Oda_kodu_yeri.setText(kullanici_verileri[0])
+        self.enter_room()
+
 
 
 """app = QApplication([])
