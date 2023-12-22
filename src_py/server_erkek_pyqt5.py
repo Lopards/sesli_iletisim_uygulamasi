@@ -1,26 +1,26 @@
 from PyQt5 import QtCore
 
-from PyQt5.QtCore import Qt, QSettings
+from PyQt5.QtCore import Qt ,pyqtSlot
 from PyQt5.QtWidgets import *
 from PyQt5.QtWidgets import QWidget
 from src_py.src_ui.server_man import Ui_Form
-from PyQt5.QtGui import QStandardItem, QStandardItemModel, QIcon, QPixmap
+from PyQt5.QtGui import QStandardItem, QStandardItemModel, QIcon 
 import atexit  # program aniden kapansa bile 69. satır sayesinde sql database durum = çıkıldı yapılıyor.
 import socket
 import pyaudio
 import numpy as np
 import threading
 import speech_recognition as sr
-import time
-import pickle
 import random
 import socketio
+import mysql.connector
 from string import ascii_uppercase
 from scipy import signal
 import os
 from cryptography.fernet import Fernet
 
 sio = socketio.Client()
+kullanici_ad=""
 
 
 class server_erkek_page(QWidget):
@@ -42,7 +42,7 @@ class server_erkek_page(QWidget):
         # self.server_erkek.settings.clicked.connect(self.settings)
 
         # self.server_erkek.Durdur_buton.clicked.connect(self.stop)
-        self.server_erkek.baglantiyi_kes_buton.clicked.connect(self.disconnect)
+        self.server_erkek.baglantiyi_kes_buton.clicked.connect(self.kullanici_ad_text)
 
         # self.server_erkek.Ses_al_buton.clicked.connect(self.start_get_sound)
 
@@ -108,62 +108,88 @@ class server_erkek_page(QWidget):
         self.stop_event = threading.Event()
         self.sayac = 0
         self.sayac_kulaklik = 0
+
+        self.kullanici_ad_text()
         self.hoparlor_liste()
         self.efekt_listele()
         self.ip_tara()
         self.enter_room()
-        atexit.register(self.disconnect)
+        self.create_connection()
+        
+        #atexit.register(self.disconnect)
         icon_dosya = QIcon("dosya_gonder_icon.png")
         icon_ayar = QIcon("ayarlar_logo4.png")
         self.server_erkek.Dosya_gonder_buton.setIcon(icon_dosya)
         self.server_erkek.settingsButton.setIcon(icon_ayar)
-        # self.server_erkek.Dosya_gonder_buton.setIconSize(icon.actualSize(icon.availableSizes()[0]))
+        
+    def kullanici_ad_text(self):#oda kodunu db e aktarmak için bu fonksiyon kullanılacak
+        from src_py.kayit_yeri_pyqt5 import kayit # kütüphane kısmında import etmedim çünkü circle hatası veriyordu.
+        self.kullanici_ad = kayit()
+        ID = self.kullanici_ad.kullanici_ad_signal()
+        
+        global kullanici_ad
+        kullanici_ad = ID
+        self.create_connection()
+        
+    def kullanici_ad_gonder(self): #kullanıcı adını  istemci sayfasında kullancağım. sayfalar araası iletişim için bu fonksiyonu kullandım
+        global kullanici_ad
 
+        return kullanici_ad
+
+    
     def is_toggle_mic(self):
-            if self.server_erkek.Baslat_buton.isChecked() and not self.is_running:
+            if self.server_erkek.Baslat_buton.isChecked():
+
                 print("Ses gönderimi aktif")
                 self.server_erkek.Baslat_buton.setText("")
                 self.server_erkek.Baslat_buton.setStyleSheet(
-                    "QPushButton {background-color: #ff4040; border-radius:15px;color:white;}"
-                )
-                icon = QIcon("kapali_mic.png")
-                self.server_erkek.Baslat_buton.setIcon(icon)
-                if self.sayac ==0:
-                    threading.Thread(target=self.send_audio).start()
-                    self.sayac+=1
-                    print(self.sayac)
-                self.is_running = True
-
-            elif self.server_erkek.Baslat_buton.isChecked() and self.is_running:
-                print("Ses gönderimi pasif")
-                self.server_erkek.Baslat_buton.setStyleSheet(
-                    "QPushButton {background-color:#0d730d; border-radius:15px;color:white;}"
+                    "QPushButton {background-color: #0d730d; border-radius:15px;color:white;}"
                 )
                 icon = QIcon("acikmikrofon.png")
                 self.server_erkek.Baslat_buton.setIcon(icon)
+                
+                self.is_running = True
+                if self.sayac == 0:
+                    self.sayac += 1
+                    print("send_audio aktif")
+                    self.start_communication()
+
+            else:
+                print("Ses gönderimi pasif")
+                self.server_erkek.Baslat_buton.setStyleSheet(
+                    "QPushButton {background-color:#ff4040; border-radius:15px;color:white;}"
+                )
+                icon = QIcon("kapali_mic.png")
+                self.server_erkek.Baslat_buton.setIcon(icon)
                 self.is_running = False
+                
 
 
     def is_toggle_headset(self):
-            if self.server_erkek.Ses_a_devaml_buton.isChecked() and not self.is_running_recv:
-                print("Ses  aktif")
+            if self.server_erkek.Ses_a_devaml_buton.isChecked():
+                print("Hoparlör aktif")
+                self.Event.set()
                 self.server_erkek.Ses_a_devaml_buton.setText("")
+                self.server_erkek.Ses_a_devaml_buton.setStyleSheet(
+                    "QPushButton {background-color:#0d730d; border-radius:15px;color:white;}"
+                )
+                icon = QIcon("kulaklik.jpeg")
+                self.server_erkek.Ses_a_devaml_buton.setIcon(icon)
+                self.is_running_recv = True
+
+            else:
+
+                print("Hoparlör pasif")
+                self.server_erkek.Ses_a_devaml_buton.setText("")
+                self.Event.clear()# eventi denicem sabahleyin unutma.
                 self.server_erkek.Ses_a_devaml_buton.setStyleSheet(
                     "QPushButton {background-color: #ff4040; border-radius:15px;color:white;}"
                 )
                 icon = QIcon("kapali_kulaklik.jpg")
                 self.server_erkek.Ses_a_devaml_buton.setIcon(icon)
                
-                self.is_running_recv = True
-
-            elif self.server_erkek.Ses_a_devaml_buton.isChecked() and self.is_running_recv:
-                print("Ses  pasif")
-                self.server_erkek.Ses_a_devaml_buton.setStyleSheet(
-                    "QPushButton {background-color:#0d730d; border-radius:15px;color:white;}"
-                )
-                icon = QIcon("kulaklik.jpeg")
-                self.server_erkek.Ses_a_devaml_buton.setIcon(icon)
                 self.is_running_recv = False
+                
 
     def send_file(self):
         file_dialog = QFileDialog()
@@ -195,8 +221,11 @@ class server_erkek_page(QWidget):
         room_code = self.oda_ismi()
     
         print(room_code)
+        
+        #self.start_communication()
         sio.on("data2", self.get_sound)
 
+        #self.start_communication()
         @sio.on("connect")
         def on_connect():
             print("Bağlandı.")
@@ -204,6 +233,8 @@ class server_erkek_page(QWidget):
 
         @sio.event
         def disconnect():
+            
+            
             print("Bağlantı kesildi.")
 
         self.create_room(name, room_code)
@@ -261,17 +292,16 @@ class server_erkek_page(QWidget):
             channels=self.CHANNELS,
             rate=44100,
             input=True,
-            output= True,
             frames_per_buffer=self.CHUNK,
         )
 
         try:
-            while True:
-                if self.is_running != True:
+            
+                while self.is_running:
 
                     data = stream.read(self.CHUNK)
                     audio_data = np.frombuffer(data, dtype=np.int16)
-                    converted_data = signal.resample(
+                    """converted_data = signal.resample(
                         audio_data, int(len(audio_data) * self.PITCH_SHIFT_FACTOR)
                     )  # PITCH_SHIFT_FACTOR ile sesin örnekleme sayısını değiştir
                     converted_data = converted_data.astype(
@@ -279,14 +309,14 @@ class server_erkek_page(QWidget):
                     )  # yeniden işlenen ses verisini int16 tam sayısına dönüştür
                     converted_data_bytes = (
                         converted_data.tobytes()
-                    )  # ses verisini baytlara donuştur
+                    )  # ses verisini baytlara donuştur"""
                     audio_data = audio_data.tobytes()
 
                     sio.emit(
                         "audio_data", {"audio_data": audio_data}
                     )  # Bytlara dönüştürülen ses verilerini 'audio_data' sözcüğü ile emitle emitle
         except Exception as e:
-            print("hata")
+            print("hata",e)
         finally:
             stream.stop_stream()
             stream.close()
@@ -308,11 +338,13 @@ class server_erkek_page(QWidget):
                         output=True,
                         frames_per_buffer=1024,
                     )
-
-                audio_data = data.get("audio_data2", b"")
+                if data:
+                    audio_data = data.get("audio_data2", b"")
                     #print(audio_data)
-                if self.is_running_recv:
-                    self.stream.write(audio_data)
+                    if self.is_running_recv:
+                        self.stream.write(audio_data)
+                else:
+                    print("data yok")
 
             except Exception as e:
                 print("Ses alma hatası:", str(e))
@@ -513,7 +545,7 @@ class server_erkek_page(QWidget):
         t1 = threading.Thread(target=self.yazi_gonder)
         t1.start()
 
-    from cryptography.fernet import Fernet
+
 
     def generate_key(self):
         return Fernet.generate_key() # key oluştur
@@ -525,6 +557,26 @@ class server_erkek_page(QWidget):
 
     def get_background_color(self):
         return self.background_color
+    
+    def create_connection(self):
+
+        """
+        MySQL veritabanına bağlantı oluşturur.
+        """
+        global kullanici_ad
+        print(kullanici_ad)
+        connection = mysql.connector.connect(
+            host="rise.czfoe4l74xhi.eu-central-1.rds.amazonaws.com",
+            user="admin",
+            password="Osmaniye12!",
+            database="rise_data"
+        )
+        cursor = connection.cursor()
+        cursor.execute('UPDATE veriler SET oda_kodu =%s WHERE kullanici_ad = %s ',
+                                       (self.room_code,kullanici_ad))
+        connection.commit()
+        connection.close()
+
 
 
 """app = QApplication([])
