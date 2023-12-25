@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, session, redirect, url_for,se
 from flask_socketio import join_room, leave_room, send, SocketIO, emit
 import random
 from string import ascii_uppercase
+import base64
 
 
 app = Flask(__name__)
@@ -12,7 +13,7 @@ socketio = SocketIO(app)
 
 rooms = {}
 users_in_rooms = {}
-
+room_s = "" # bu değişkeni eklemeden önce ses verileri bütün odalara gidityordu. artık sesler kullanıcının olduğu odaya gidecek. 
 def generate_unique_code(length):#Benzersiz oda kodu oluşturmaya yarar
     while True:
         code = ""
@@ -46,9 +47,9 @@ def home():
             users_in_rooms[room] = [name]
         elif code not in rooms:
             return render_template("home.html", error="Room does not exist.", code=code, name=name)
-        else:
+        """else:
             rooms[room]["members"].append(name)
-            users_in_rooms[room].append(name)
+            users_in_rooms[room].append(name)"""
 
         session["room"] = room
         session["name"] = name
@@ -70,9 +71,10 @@ def message(data):#Kullanıcıların sohbet odasında mesaj göndermesini sağla
     name = session.get("name") or data["name"]
     message = data["data"]
 
+
     efekt = data.get("efekt")
     key = data.get("key")  # Anahtarı al
-
+    
 
     if room not in rooms:
         return
@@ -104,7 +106,7 @@ def connect(auth):# Kullanıcıların sohbet odasına bağlanmasını sağlayar 
         print("room yok")
         leave_room(room)
         return
-
+    
     join_room(room)
     send({"name": name, "message": "has entered the room"}, to=room)
     rooms[room]["members"].append(name)
@@ -128,13 +130,16 @@ def disconnect():
 def handle_create_room(data):#kullanıcıların oda oluşturmasını sağlar .data içined oda sahibi ismi(name) ve oda kodu vardır
     name = data['name']
     code = data['code']
-
+    global room_s
+    room_s=code #sesin hangi odaya gideceği belirlendi
+    
     if code not in rooms:
         rooms[code] = {"members": [name], "messages": []}
         users_in_rooms[code] = [name]
         print(f"Oda oluşturuldu. Adı: {name}, Kodu: {code}")
     else:
         print("Bu oda kodu zaten kullanılıyor.")
+    join_room(room_s)#odaya katılındı
 
     send('message', {'name': name, 'code': code}, room=request.sid)
 
@@ -148,48 +153,37 @@ def take_rooms():
 
 
 
-@app.route('/upload', methods=['GET', 'POST'])
-def upload():
-    if request.method == 'POST':
-        if 'file' not in request.files:
-            return 'No file part'
+@socketio.on('file_upload')
+def handle_file_upload(data):
+    file_name = data['file_name']
+    file_data_base64 = data['file_data']
 
-        file = request.files['file']
+    # Base64 veriyi çöz
+    file_data = base64.b64decode(file_data_base64)
 
-        if file.filename == '':
-            return redirect(url_for("room"))
-
-        # Dosyayı kaydetmek için uygun bir klasörü belirtin
-        # Örneğin, bu örnekte "uploads" adlı bir klasör kullanılıyor
-        file.save('uploads/' + file.filename)
-        print("dosya gönderildi")
-        emit('file',file.filename)
-        return redirect(url_for("room"))
+    # Dosyayı kaydet
+    with open(file_name, "wb") as file:
+        file.write(file_data)
+    file_data_encoded = base64.b64encode(file_data).decode('utf-8')
+    print(f"Received file: {file_name}")
+    socketio.emit('file_uploaded', {'filename': file_name,'file_data':file_data_encoded})
 
 
-@app.route('/receive_file', methods=['POST'])
-def receive_file():
-    if 'file' not in request.files:
-        return 'No file part'
 
-    file = request.files['file']
 
-    if file.filename == '':
-        return 'No selected file'
-
-    # Dosyayı kaydetmek için uygun bir klasörü belirt
-    # Örneğin, bu örnekte "downloads" adlı bir klasör kullanılıyor
-    file.save('downloads/' + file.filename)
-    
-    print("Dosya alındı")
-
-@socketio.on('audio_data') #ses iletişimi için
+@socketio.on('audio_data')
 def audio_data(data1):
-   
-   # emit('data', data, broadcast=True, include_self=False)
-    room = session.get("room")
-    emit("data1",data1, to=room, broadcast=True)
 
+    emit("data1", data1, to=room_s,broadcast=True)
+
+
+        
+
+@socketio.on('audio_data2') #ses iletişimi için
+def audio_data2(data2):
+   
+
+    emit("data2",data2,to=room_s,broadcast=True)
 
 @socketio.on('screenShot') #ekran görüntüsünü paylaşmak için
 def screenShot(screenShot):
@@ -204,4 +198,4 @@ def screenShot(screenShot):
     
 
 if __name__ == "__main__":
-    socketio.run(app, host="192.168.1.85",debug=True)
+    socketio.run(app, host="YOUR_IP_ADRSS",debug=True)
