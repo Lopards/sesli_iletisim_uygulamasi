@@ -8,7 +8,7 @@ import numpy as np
 import mysql.connector
 import time
 
-from PyQt5.QtGui import QStandardItem, QStandardItemModel,QIcon
+from PyQt5.QtGui import QStandardItem, QStandardItemModel, QIcon
 from src_py.src_metin.metin_oku import *
 from PyQt5.QtWidgets import QListWidgetItem
 from PyQt5.QtGui import QColor, QBrush
@@ -36,7 +36,7 @@ class istemci_page(QMainWindow):
 
         # self.istemci.ses_al_devam.clicked.connect(self.get_sound_continue)
 
-        self.istemci.baglantiyi_kes_buton.clicked.connect(self.disconnect)
+        self.istemci.baglantiyi_kes_buton.clicked.connect(self.send_output_device_list)
 
         self.istemci.odaya_gir_buton.clicked.connect(self.oda_kodu_ID)
 
@@ -67,9 +67,9 @@ class istemci_page(QMainWindow):
         self.p = pyaudio.PyAudio()
         self.stream = None
         self.sio = socketio.Client()
-        self.sayac_kulaklik =0
-        self.sayac =0
-
+        self.sayac_kulaklik = 0
+        self.sayac = 0
+        self.device_indexes= None
         self.ip_file = "ip_addresses.txt"  # IP adreslerini saklayan dosya adı
         self.istemci.ip_listesi.itemDoubleClicked.connect(self.item_double_clicked)
 
@@ -84,59 +84,57 @@ class istemci_page(QMainWindow):
         self.istemci.ses_al_devam.setCursor(Qt.PointingHandCursor)
         self.istemci.ses_gonder_buton.setCursor(Qt.PointingHandCursor)
         self.istemci.baglantiyi_kes_buton.setCursor(Qt.PointingHandCursor)
-        #self.oda_kodu_ID()
-
+        self.istemci.ses_al_devam.setDisabled(True)
+        # self.oda_kodu_ID()
         # self.scan_ip()
 
     def is_toggle_mic(self):
-            if self.istemci.ses_gonder_buton.isChecked() and not self.is_running:
-                print("Ses gönderimi aktif")
-                self.istemci.ses_gonder_buton.setText("")
-                self.istemci.ses_gonder_buton.setStyleSheet(
-                    "QPushButton {background-color: #0d730d; border-radius:15px;color:white;}"
-                )
-                icon = QIcon("acikmikrofon.png")
-                self.istemci.ses_gonder_buton.setIcon(icon)
-                self.is_running = True
-                if self.sayac == 0:
-                    self.sayac += 1
-                    print("send_audio aktif")
-                    self.start_communication()
-                
-                
+        if self.istemci.ses_gonder_buton.isChecked() and not self.is_running:
+            print("Ses gönderimi aktif")
+            self.istemci.ses_gonder_buton.setText("")
+            self.istemci.ses_gonder_buton.setStyleSheet(
+                "QPushButton {background-color: #0d730d; border-radius:15px;color:white;}"
+            )
+            icon = QIcon("acikmikrofon.png")
+            self.istemci.ses_gonder_buton.setIcon(icon)
+            self.is_running = True
+            if self.sayac == 0:
+                self.sayac += 1
+                print("send_audio aktif")
+                self.start_communication()
 
-            else:
-                print("Ses gönderimi pasif")
-                self.istemci.ses_gonder_buton.setStyleSheet(
-                    "QPushButton {background-color:#ff4040; border-radius:15px;color:white;}"
-                )
-                icon = QIcon("kapali_mic.png")
-                self.istemci.ses_gonder_buton.setIcon(icon)
-                self.is_running = False
 
+
+        else:
+            print("Ses gönderimi pasif")
+            self.istemci.ses_gonder_buton.setStyleSheet(
+                "QPushButton {background-color:#ff4040; border-radius:15px;color:white;}"
+            )
+            icon = QIcon("kapali_mic.png")
+            self.istemci.ses_gonder_buton.setIcon(icon)
+            self.is_running = False
 
     def is_toggle_headset(self):
-            if self.istemci.ses_al_devam.isChecked():
-                print("Hoparlör aktif")
-                self.istemci.ses_al_devam.setText("")
-                self.istemci.ses_al_devam.setStyleSheet(
-                    "QPushButton {background-color: #0d730d; border-radius:15px;color:white;}"
-                )
-                icon = QIcon("kulaklik.jpeg")
-                self.istemci.ses_al_devam.setIcon(icon)
-                
-                print(self.sayac_kulaklik)
-                self.is_running_recv = True
+        if self.istemci.ses_al_devam.isChecked():
+            print("Hoparlör aktif")
+            self.istemci.ses_al_devam.setText("")
+            self.istemci.ses_al_devam.setStyleSheet(
+                "QPushButton {background-color: #0d730d; border-radius:15px;color:white;}"
+            )
+            icon = QIcon("kulaklik.jpeg")
+            self.istemci.ses_al_devam.setIcon(icon)
 
-            else:
-                print("Hoparlör pasif")
-                self.istemci.ses_al_devam.setStyleSheet(
-                    "QPushButton {background-color:#ff4040; border-radius:15px;color:white;}"
-                )
-                icon = QIcon("kapali_kulaklik.jpg")
-                self.istemci.ses_al_devam.setIcon(icon)
-                self.is_running_recv = False
+            print(self.sayac_kulaklik)
+            self.is_running_recv = True
 
+        else:
+            print("Hoparlör pasif")
+            self.istemci.ses_al_devam.setStyleSheet(
+                "QPushButton {background-color:#ff4040; border-radius:15px;color:white;}"
+            )
+            icon = QIcon("kapali_kulaklik.jpg")
+            self.istemci.ses_al_devam.setIcon(icon)
+            self.is_running_recv = False
 
     @sio.on("file_uploaded")
     def receive_file2(data):
@@ -145,7 +143,7 @@ class istemci_page(QMainWindow):
             file_data_base64 = data["file_data"]
 
             # Base64 veriyi çöz
-            #file_data = base64.b64decode(file_data_base64)
+            # file_data = base64.b64decode(file_data_base64)
             if not os.path.exists("downloads"):
                 os.makedirs("downloads")
             file_path = os.path.join("downloads", file_name)
@@ -157,10 +155,8 @@ class istemci_page(QMainWindow):
         except Exception as e:
             print(f"Hata dosya alınırken: {e}")
 
-
-
     def decrypt_message(
-        self, encrypted_message, key
+            self, encrypted_message, key
     ):  # gelen şifreli metni ve keyi alıyoruz.
         cipher_suite = Fernet(base64.urlsafe_b64encode(key).decode("utf-8"))
         decrypted_message = cipher_suite.decrypt(
@@ -210,16 +206,19 @@ class istemci_page(QMainWindow):
                 pass
 
     def enter_room(
-        self,
+            self,
     ):  # flask ile kurulan odaya giriş yapılıyor. Ses ve metin alışverişi başlatılıyor
         room = self.istemci.Oda_kodu_yeri.text()
         name = "öğrenci"
 
-        # self.get_sound_f()
         self.receive_text()
-        #self.start_communication()
+
+        #self.send_output_device_list()
+        sio.on("index",self.select_output_device)
+
         sio.on("data1", self.get_sound)
-        sio.connect("http://192.168.1.56:5000", auth={"name": name, "room": room})
+        sio.connect("http://192.168.1.75:5000", auth={"name": name, "room": room})
+
 
     def receive_text_thread(self):
         ti1 = threading.Thread(target=self.receive_text)
@@ -236,17 +235,17 @@ class istemci_page(QMainWindow):
         )
 
         try:
-           
-                while self.is_running == True:
 
-                    data = stream.read(self.CHUNK)
-                    audio_data = np.frombuffer(data, dtype=np.int16)
-                    
-                    audio_data = audio_data.tobytes()
+            while self.is_running == True:
+                data = stream.read(self.CHUNK)
+                audio_data = np.frombuffer(data, dtype=np.int16)
 
-                    sio.emit("audio_data2", {"audio_data2": audio_data})  # Bytlara dönüştürülen ses verilerini 'audio_data' sözcüğü ile emitle emitle
+                audio_data = audio_data.tobytes()
+
+                sio.emit("audio_data2", {
+                    "audio_data2": audio_data})  # Bytlara dönüştürülen ses verilerini 'audio_data' sözcüğü ile emitle emitle
         except Exception as e:
-            print("hata",e)
+            print("hata", e)
         finally:
             stream.stop_stream()
             stream.close()
@@ -255,30 +254,21 @@ class istemci_page(QMainWindow):
     def start_communication(self):
         threading.Thread(target=self.send_audio).start()
 
-
     def get_sound(self, data):
-  
+        while not self.output_stream:
+            self.play_button_clicked()
+
         try:
-            if self.stream is None :
-                p = pyaudio.PyAudio()
-                self.stream = p.open(
-                    format=self.FORMAT,
-                    channels=self.CHANNELS,
-                    rate=self.RATE,
-                    output=True,
-                    frames_per_buffer=1024,
-                )
+
             if data:
                 audio_data = data.get("audio_data", b"")
-                    #print(audio_data)
+                # print(audio_data)
                 if self.is_running_recv:
-                    self.stream.write(audio_data)
+                    self.play_server_output(audio_data)
+                    #self.stream.write(audio_data)
 
         except Exception as e:
             print("Ses alma hatası:", str(e))
-
-
-    
 
     def get_sound_f(self):
         self.is_running_recv = True
@@ -316,7 +306,7 @@ class istemci_page(QMainWindow):
             ip_addresses.insert(0, ip_address)  # Yeni IP adresini en üstte ekleyin
 
             with open(
-                self.ip_file, "w"
+                    self.ip_file, "w"
             ) as f:  # Dosyanın içeriğini yeniden yazmak için "w" modunu kullanın
                 for ip in ip_addresses:
                     f.write(ip + "\n")
@@ -352,42 +342,41 @@ class istemci_page(QMainWindow):
 
             ##### ********** ######
 
-    def select_output_device(self):
-        index_bytes = self.server_socket.recv(
-            10
-        )  # İhtiyaca göre byte sayısını ayarlayın
-        index = int.from_bytes(index_bytes, byteorder="big")
-        print(index)
-        device_indexes = index
-        print(device_indexes)
-        if device_indexes is not None:
-            return device_indexes
+    def select_output_device(self,index):
+        row = index['index']
+        
+        self.device_indexes = row
+        print(self.device_indexes)
+        if self.device_indexes is not None:
+            return self.device_indexes
         else:
             # Eğer herhangi bir öğe seçilmemişse, None döndür
             return None
 
     def play_button_clicked(self):
-        output_device = self.select_output_device()
-        print(output_device)
-        if output_device is not None:
-            print("Output Device:", output_device)
-            self.set_output_stream(output_device)
-            self.stop_event.clear()
-        else:
-            print("Hoparlör seçilmedi. Devam edemiyoruz.")
-
+        
+        print(self.device_indexes)
+        try:
+            if self.device_indexes is not None:
+                print("Output Device:", self.device_indexes)
+                self.set_output_stream(self.device_indexes)
+                self.istemci.ses_al_devam.setDisabled(False)
+                #self.stop_event.clear()
+            else:
+                print("Hoparlör seçilmedi. Devam edemiyoruz.")
+                return
+        except Exception as e:
+            print("hoparlör seçiminde hata:",e)
         # self.play_server_output(data)
 
     def get_background_color(self):
         return self.background_color
-    
+
     def oda_kodu_ID(self):
-        from src_py.kayit_yeri_pyqt5 import kayit # kütüphane kısmında import etmedim çünkü circle hatası veriyordu.
+        from src_py.kayit_yeri_pyqt5 import kayit  # kütüphane kısmında import etmedim çünkü circle hatası veriyordu.
         self.kullanici_ad = kayit()
         ID = self.kullanici_ad.kullanici_ad_signal()
         print(ID)
-        
-
 
         """
         MySQL veritabanına bağlantı oluşturur.
@@ -403,12 +392,28 @@ class istemci_page(QMainWindow):
         query = "SELECT oda_kodu FROM veriler WHERE kullanici_ad = %s"
         cursor.execute(query, (ID,))
         kullanici_verileri = cursor.fetchone()
-        
+
         connection.commit()
         connection.close()
         self.istemci.Oda_kodu_yeri.setText(kullanici_verileri[0])
         self.enter_room()
 
+    def send_output_device_list(self):  # cihazın hoparlör listesini server bilgisayara pickle ile yolla
+        p = pyaudio.PyAudio()
+
+        output_device_list = []
+        for i in range(p.get_device_count()):
+            device_info = p.get_device_info_by_index(i)
+            if device_info["maxOutputChannels"] > 0:
+                device_name = device_info["name"]
+                output_device_list.append(device_name)
+                if len(output_device_list) == 8:
+                    break
+        print("yolladım")
+        sio.emit("output_device_list",  {"list": output_device_list})
+
+
+    
 
 
 """app = QApplication([])
