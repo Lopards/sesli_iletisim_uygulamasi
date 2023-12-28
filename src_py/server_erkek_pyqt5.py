@@ -1,10 +1,9 @@
-
-
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import *
 from PyQt5.QtWidgets import QWidget
 from src_py.src_ui.server_man import Ui_Form
 from PyQt5.QtGui import QStandardItem, QStandardItemModel, QIcon
+from flask import session
 
 import socket
 import pyaudio
@@ -228,10 +227,12 @@ class server_erkek_page(QWidget):
         sio.on("data2", self.get_sound)
 
 
-        @sio.on("connect")
+       @sio.on("connect")
         def on_connect():
             print("Bağlandı.")
-            sio.emit("create_room", {"name": name, "code": room_code})
+            session["name"] = name # flask uygulamasında disconnect olayında bu bilgilere ulaşmak için eklendi
+            session["room"] = room_code
+            sio.emit("baglan", {"name": name, "code": room_code})
 
         @sio.event
         def disconnect():
