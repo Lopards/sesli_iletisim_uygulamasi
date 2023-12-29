@@ -13,7 +13,7 @@ class ChatApp:
         # Flask-Session konfigürasyonu
         self.app.config[
             "SESSION_TYPE"
-        ] = "filesystem"  # Örnek bir depolama tipi, siz kendi projenize uygun birini seçebilirsiniz
+        ] = "filesystem"  #
         Session(self.app)
 
         self.rooms = {}
@@ -33,7 +33,7 @@ class ChatApp:
             print("veri:",data)
             name = data.get("name")  # Name ve room bilgilerini auth içinden alır
             room = data.get("room")
-            print("name print ediliyor:",name)
+            print("name print ediliyor:",name,room)
 
             if not room or not name:
                 print("room yok veya name yok")
@@ -53,6 +53,7 @@ class ChatApp:
             self.rooms[room]["members"].append(name)
             self.users_in_rooms[room].append(name)
             print("self.users.in.room [room]pritn etmek ben",self.users_in_rooms[room])
+            self.connected_users[request.sid] = {"name": name, "room": room}
             print(f"{name} joined room {room}")
 
 
@@ -71,14 +72,16 @@ class ChatApp:
             if user_data:
                 name = user_data.get("name")
                 room = user_data.get("room")
-                print(name, "odadan çıktı")
+                print(name,room, "odadan çıktı")
 
                 if room in self.rooms:
                     self.rooms[room]["members"].remove(name)
                     self.users_in_rooms[room].remove(name)
                     print(len(self.users_in_rooms[room]))
                     if room in self.rooms and len(self.rooms[room]["members"]) <= 0:
+                        
                         del self.rooms[room]
+                        print("aktif odalar",self.rooms)
 
                     self.socketio.emit("user_left", {"name": name, "room": room}, to=room)
                     print(f"{name} has left the room {room}")
@@ -86,15 +89,15 @@ class ChatApp:
 
 
         @self.socketio.on("create_room")
-        def handle_create_room(data):
+        def handle_create_room(data): # kullanıcıların oda oluşturmasını sağlar .data içined oda sahibi ismi(name) ve oda kodu vardır
   
             name = data["name"]
-            code = data["code"]
+            code = data["room"]
 
             if code not in self.rooms:
                 self.rooms[code] = {"members": [name], "messages": []}
                 self.users_in_rooms[code] = [name]
-                print(self.users_in_rooms[code],"123")
+                print(self.users_in_rooms[code],"odaya eklendi CREATE ROOM")
                 print(f"Oda oluşturuldu. Adı: {name}, Kodu: {code}")
             elif code in self.rooms:
                 print("Bu oda kodu zaten kullanılıyor.")
@@ -102,7 +105,7 @@ class ChatApp:
             join_room(code)  # odaya katılındı
 
             self.connected_users[request.sid] = {"name": name, "room": code}
-            self.socketio.emit("create_room", {"name": name, "code": code}, to=code)
+            self.socketio.emit("create_room", {"name": name, "room": code}, to=code)
 
 
 
@@ -123,7 +126,7 @@ class ChatApp:
             self.socketio.emit(
                 "file_uploaded", {"filename": file_name, "file_data": file_data_encoded}
             )
-            # (Kodunuzun geri kalanı burada)
+         
 
         @self.socketio.on("audio_data")
         def audio_data(data1):
@@ -133,31 +136,31 @@ class ChatApp:
         @self.socketio.on("audio_data2")
         def audio_data2(data2):
             emit("data2", data2, to=self.room_s, broadcast=True)
-            # (Kodunuzun geri kalanı burada)
+            #
 
         @self.socketio.on("output_device_list")
         def output_device_list(List):
-            print(self.users_in_rooms)
-            print(self.rooms)
+            print("odadaki kullanıcılar:",self.users_in_rooms)
+            print("odalar:",self.rooms)
             print(self.room_s,"room_s")
             emit("liste", List, to=self.room_s)
 
         @self.socketio.on("output_device_index")
         def output_device_list(index):
             emit("index", index, to=self.room_s)
-            # (Kodunuzun geri kalanı burada)
+            #
 
         @self.socketio.on("message")
         def message(data):
             room = session.get("room") or data["room"]
             name = session.get("name") or data["name"]
             message = data["data"]
-
+            print("message metodu name ve room print:",name,room)
             efekt = data.get("efekt")
             key = data.get("key")  # Anahtarı al
 
             if room not in self.rooms:
-                print("heyo")
+                print("message!!! ROOM YOK")
                 return
 
             content = {
@@ -170,7 +173,11 @@ class ChatApp:
             self.rooms[room]["messages"].append(content)
             print(f"{name} said: {message}")
 
-
+        @self.socketio.on("see_members_on_room")
+        def see_members_on_room(data):
+                room = session.get("room") or data["room"]
+                #name = session.get("name") or data["name"]
+                print(self.rooms[room]["members"],"odadaki üyerler")
 
 
         if __name__ == "__main__":
