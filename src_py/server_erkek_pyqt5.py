@@ -3,8 +3,8 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtWidgets import QWidget
 from src_py.src_ui.server_man import Ui_Form
 from PyQt5.QtGui import QStandardItem, QStandardItemModel, QIcon
+from flask_session import Session,sessions  
 from flask import session
-
 import socket
 import pyaudio
 import numpy as np
@@ -18,7 +18,7 @@ from scipy import signal
 import os
 from cryptography.fernet import Fernet
 
-
+import keyboard # tuşa basıp konuşabilmek için
 sio = socketio.Client()
 kullanici_ad = ""
 
@@ -42,7 +42,7 @@ class server_erkek_page(QWidget):
         # self.server_erkek.settings.clicked.connect(self.settings)
 
         # self.server_erkek.Durdur_buton.clicked.connect(self.stop)
-        # self.server_erkek.baglantiyi_kes_buton.clicked.connect(self.hoparloru_listeye_koy)
+        self.server_erkek.baglantiyi_kes_buton.clicked.connect(self.see_members_on_room)
 
         # self.server_erkek.Ses_al_buton.clicked.connect(self.start_get_sound)
 
@@ -79,7 +79,7 @@ class server_erkek_page(QWidget):
         self.server_erkek.hoparlor_liste_ac.setCursor(Qt.PointingHandCursor)
         self.server_erkek.sesli_yaz_buton.setCursor(Qt.PointingHandCursor)
         self.server_erkek.sesli_yaz_durdur_buton.setCursor(Qt.PointingHandCursor)
-        self.buffer = b""
+        
         self.HOST = None
         self.FORMAT = pyaudio.paInt16
         self.CHUNK = 1024
@@ -225,27 +225,28 @@ class server_erkek_page(QWidget):
         sio.on("liste", self.hoparlor_liste_al)
 
         sio.on("data2", self.get_sound)
+        
 
-
-       @sio.on("connect")
+        @sio.on("connect")
         def on_connect():
             print("Bağlandı.")
-            session["name"] = name # flask uygulamasında disconnect olayında bu bilgilere ulaşmak için eklendi
-            session["room"] = room_code
-            sio.emit("baglan", {"name": name, "code": room_code})
+            #session["name"] = name
+            #session["room"] = room_code
+            sio.emit("baglan", {"name": name, "room": room_code})
 
         @sio.event
         def disconnect():
             print("Bağlantı kesildi.")
-
+        
         self.create_room(name, room_code)
 
     def create_room(self, name, room_code):
         print("oda oluşturuldu")
         sio.connect(
-            "http://192.168.1.75:5000"
+            "http://192.168.1.45:5000"
         )  # Flask uygulamanızın adresine göre güncelleyin.
-        sio.emit("create_room", {"name": name, "code": room_code})
+        sio.emit("create_room", {"name": name, "room": room_code})
+        
 
     def efekt_listele(self):
         # Metin Gönderme sırasında seçilecek efektler listeleniyor.
@@ -283,6 +284,9 @@ class server_erkek_page(QWidget):
         self.server_erkek.ip_adres.setText(local_ip)
 
         #################******######################
+    def see_members_on_room(self):
+        room = self.room_code
+        sio.emit("see_members_on_room",{"room": room})
 
         #################******######################
 
@@ -299,7 +303,7 @@ class server_erkek_page(QWidget):
 
         try:
             while True:
-                while self.is_running:
+                while keyboard.is_pressed('m'):
                     data = stream.read(self.CHUNK, exception_on_overflow=False)
                     audio_data = np.frombuffer(data, dtype=np.int16)
 
@@ -315,10 +319,10 @@ class server_erkek_page(QWidget):
 
                     try:
                         sio.emit("audio_data", {"audio_data": audio_data})
-
+                        audio_data = None
                     except Exception as e:
                         print(e)
-                audio_data = None
+               
         except Exception as e:
             print("hata", e)
         finally:
@@ -602,7 +606,4 @@ class server_erkek_page(QWidget):
         sio.emit("output_device_index", {"index": selected_row}) # index sözcüğü ile gönder
 
 
-"""app = QApplication([])
-window = server_erkek_page()
-window.show()
-app.exec_()"""
+
