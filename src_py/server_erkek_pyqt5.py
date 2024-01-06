@@ -197,13 +197,24 @@ class server_erkek_page(QWidget):
         file_path, _ = file_dialog.getOpenFileName(
             self, "Dosya Seç", "", "All Files (*)"
         )
-        # Dosya adını al
-        file_name = os.path.basename(file_path)
 
-        # Socket.io üzerinden dosyayı gönder
-        with open(file_path, "rb") as file:
-            sio.emit("file_upload", {"file_name": file_name, "file_data": file.read()})
-        print("Dosya gönderildi")
+        if not file_path:
+            print("Dosya seçilmedi.")
+            return
+
+        try:
+            # Dosya adını al
+            file_name = os.path.basename(file_path)
+
+            # Dosyayı oku ve Base64 ile kodla
+            with open(file_path, "rb") as file:
+                file_data_base64 = base64.b64encode(file.read()).decode("utf-8")
+
+            sio.emit("file_upload", {"file_name": file_name, "file_data": file_data_base64})
+            print("Dosya gönderildi")
+
+        except Exception as e:
+            print(f"Hata: {e}")
 
     def oda_ismi(self):  # flask için Oda kodu oluşturuyoruz
         rooms = {}
