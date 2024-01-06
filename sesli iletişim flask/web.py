@@ -113,20 +113,29 @@ class ChatApp:
 
         @self.socketio.on("file_upload")
         def handle_file_upload(data):
-            file_name = data["file_name"]
-            file_data_base64 = data["file_data"]
+            try:
+                file_name = data["file_name"]
+                file_data_base64 = data["file_data"]
 
-            # Base64 veriyi çöz
-            file_data = base64.b64decode(file_data_base64)
+                # Base64 veriyi çöz
+                file_data = base64.b64decode(file_data_base64)
 
-            # Dosyayı kaydet
-            with open(file_name, "wb") as file:
-                file.write(file_data)
-            file_data_encoded = base64.b64encode(file_data).decode("utf-8")
-            print(f"Received file: {file_name}")
-            self.socketio.emit(
-                "file_uploaded", {"filename": file_name, "file_data": file_data_encoded}
-            )
+                # Dosyayı kaydet
+                with open(file_name, "wb") as file:
+                    file.write(file_data)
+
+                print(f"Received file: {file_name}")
+
+                # Base64 ile encode edip geri gönderme işlemi
+                with open(file_name, "rb") as file:
+                    file_data_encoded = base64.b64encode(file.read()).decode("utf-8") # dosya içeriğini almak içn
+                
+                self.socketio.emit(
+                    "file_uploaded", {"file_name": file_name, "file_data": file_data_encoded}
+                )
+
+            except Exception as e:
+                print(f"Hata dosya alınırken: {e}")
          
 
         @self.socketio.on("audio_data") # doktor tarafından fgelen ses verisini odadaki üyelere yönlendirir.
