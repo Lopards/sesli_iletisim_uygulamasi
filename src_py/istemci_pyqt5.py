@@ -136,20 +136,22 @@ class istemci_page(QMainWindow):
             self.istemci.ses_al_devam.setIcon(icon)
             self.is_running_recv = False
 
-    @sio.on("file_uploaded")
-    def receive_file2(data):
+    def receive_file(self, data):
         try:
-            file_name = data["filename"]  # "file_uploaded" olayında "filename" olarak emit ediliyor
+            
+            file_name = data["file_name"]  # "file_uploaded" olayında "filename" olarak emit ediliyor
             file_data_base64 = data["file_data"]
 
             # Base64 veriyi çöz
-            # file_data = base64.b64decode(file_data_base64)
+            file_data = base64.b64decode(file_data_base64)
+
             if not os.path.exists("downloads"):
                 os.makedirs("downloads")
+
             file_path = os.path.join("downloads", file_name)
 
             with open(file_path, "wb") as file:
-                file.write(file_data_base64)
+                file.write(file_data)
 
             print("Dosya alındı:", file_name)
         except Exception as e:
@@ -212,12 +214,17 @@ class istemci_page(QMainWindow):
         name = "öğrenci"
 
         self.receive_text()
-
-        #self.send_output_device_list()
-        sio.on("index",self.select_output_device)
-
+        @sio.event
+        def connect():
+            print("Connected to server")
+            sio.emit('baglan',{"name": name, "room": room})
+        # self.send_output_device_list()
+        sio.on("index", self.select_output_device)
+        sio.on("file_uploaded", self.receive_file)
         sio.on("data1", self.get_sound)
-        sio.connect("http://192.168.1.75:5000", auth={"name": name, "room": room})
+
+
+        sio.connect("http://192.168.1.54:5000", auth={"name": name, "room": room})
 
 
     def receive_text_thread(self):
