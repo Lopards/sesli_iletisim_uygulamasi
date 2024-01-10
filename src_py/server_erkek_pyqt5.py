@@ -87,7 +87,7 @@ class server_erkek_page(QWidget):
         self.RATE = 44100
         self.PITCH_SHIFT_FACTOR = 1.2
 
-        self.metinnn = False
+        
 
         self.is_running = False
         self.is_running_recv = False
@@ -98,8 +98,7 @@ class server_erkek_page(QWidget):
         self.metin_flag = False
         self.internet_baglantisi = False
         self.client_socket_text = None
-        self.server_socket = None
-        self.client_socket = None
+        
         self.stream = None
         self.output_stream = None
         self.speaker_stream = None
@@ -241,8 +240,7 @@ class server_erkek_page(QWidget):
         @sio.on("connect")
         def on_connect():
             print("Bağlandı.")
-            #session["name"] = name
-            #session["room"] = room_code
+            
             sio.emit("baglan", {"name": name, "room": room_code})
 
         @sio.event
@@ -314,7 +312,7 @@ class server_erkek_page(QWidget):
 
         try:
             while True:
-                while keyboard.is_pressed('m'):
+                while self.is_running:
                     data = stream.read(self.CHUNK, exception_on_overflow=False)
                     audio_data = np.frombuffer(data, dtype=np.int16)
 
