@@ -23,7 +23,8 @@ artık kayıt oldunuz Uygulamaya geçiş yapabilirsiniz.
 1. Main_work.py adlı uygulamayı çalıştırın ve çıkan arayüzde kullanıcı bilgilerinizi giriniz.
 2. Doktor - Öğrenci taraflarından birini seçiniz
 3. Eğer Doktor tarafını seçerseniz bir oda oluşturabilirsiniz. Bu oda sayesinde odanıza giren Öğrenciler ile sesli ve metinsel olarak iletişime geçebilirsiniz.`Öğrenci tarafı sadece odaya giriş yapabilir,oda kuramaz.`
-5. Öğrenci Oda kodunu gerekli alana girdikten sonra İletişim başlayacaktır.
+   
+5. Öğrenci tarafını seçerseniz yapmanız gereken tek şey `Odaya Katıl` Butonuna tıklamak. Sesli ve metinsel iletişim başlayacaktır.
 
 ## Eklenecek Güncellemeler
 - Hoparlör seçiminin Doktor tarafından yapılmasını internete taşıyacağız
