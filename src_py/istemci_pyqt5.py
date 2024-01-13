@@ -1,506 +1,324 @@
 from PyQt5.QtWidgets import *
-from src_py.src_ui.istemci import Ui_Dialog
+from PyQt5.QtCore import Qt
+from src_py.src_ui.istemci import Ui_Form
 from PyQt5.QtWidgets import QListWidgetItem
 import threading
 import pyaudio
 import numpy as np
-import socket
-import nmap
+import mysql.connector
 import time
-import pickle
-from PyQt5.QtGui import QStandardItem, QStandardItemModel
+import sounddevice as sd
+from PyQt5.QtGui import QStandardItem, QStandardItemModel, QIcon
 from src_py.src_metin.metin_oku import *
-
-from PyQt5.QtWidgets import QApplication, QListWidget, QListWidgetItem, QColorDialog, QPushButton, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import QListWidgetItem
 from PyQt5.QtGui import QColor, QBrush
+import requests
+from bs4 import BeautifulSoup
+import socketio
+from cryptography.fernet import Fernet
+import base64
+import os
+
+sio = socketio.Client()
+
 
 class istemci_page(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
-        self.istemci = Ui_Dialog()
+        self.istemci = Ui_Form()
         self.istemci.setupUi(self)
+        self.background_color = "#404040"
+        """self.istemci.ip_tara_buton.clicked.connect(self.scan_ip)
+        self.istemci.otomatik_baglan_buton.clicked.connect(
+            self.connect_to_server_Automatic
+        )
+        self.istemci.manuel_baglan.clicked.connect(self.connect_to_server_Manuel)"""
 
-        self.istemci.ip_tara_buton.clicked.connect(self.scan_ip)
-        self.istemci.otomatik_baglan_buton.clicked.connect(self.connect_to_server_Automatic)
-        self.istemci.manuel_baglan.clicked.connect(self.connect_to_server_Manuel)
+        # self.istemci.ses_al_devam.clicked.connect(self.get_sound_continue)
 
-        self.istemci.ses_gonder_buton.clicked.connect(self.start_communication)
-        self.istemci.Ses_gonder_dur.clicked.connect(self.stop_communication)
-        #self.istemci.Ses_al_buton.clicked.connect(self.get_sound)
-        self.istemci.ses_al_devam.clicked.connect(self.get_sound_continue)
-        self.istemci.ses_al_duraklat.clicked.connect(self.get_sound_stop)
-        self.istemci.baglantiyi_kes_buton.clicked.connect(self.disconnect)
-        #self.istemci.metin_okuma_buton.clicked.connect(self.metni_oku)
+        self.istemci.baglantiyi_kes_buton.clicked.connect(self.send_output_device_list)
 
+        self.istemci.odaya_gir_buton.clicked.connect(self.oda_kodu_ID)
 
-        self.CHUNK = 512 
+        self.istemci.ses_gonder_buton.setCheckable(True)
+        self.istemci.ses_gonder_buton.clicked.connect(self.is_toggle_mic)
+
+        self.istemci.ses_al_devam.setCheckable(True)
+        self.istemci.ses_al_devam.clicked.connect(self.is_toggle_headset)
+        self.CHUNK = 2048
         self.FORMAT = pyaudio.paInt16
         self.CHANNELS = 1
-        self.RATE = 22050
+        self.RATE = 44100
 
-        self.HOST = None  # Sunucu IP adresi
-        self.PORT = 12345  # Sunucu port numarası
-        self.PORT_TEXT = 12346
-        self.contunie = True
         self.is_running = False
-        self.is_running_recv = True
+        self.is_running_recv = False
         self.is_reading = False
-        self.Thread = None
 
         self.Event = threading.Event()
         self.stop_event = threading.Event()
         self.output_stream = None
         self.server_socket = None
         self.stream = None
-
-
+        self.p = pyaudio.PyAudio()
+        self.stream = None
+        self.sio = socketio.Client()
+        self.sayac_kulaklik = 0
+        self.sayac = 0
+        self.device_indexes = None
         self.ip_file = "ip_addresses.txt"  # IP adreslerini saklayan dosya adı
         self.istemci.ip_listesi.itemDoubleClicked.connect(self.item_double_clicked)
-        
+
         self.ip_listesini_comboboxa_ekle()
 
-        #self.scan_ip()
+        self.istemci.ip_tara_buton.setCursor(
+            Qt.PointingHandCursor
+        )  # Bu satırı ekleyerek mouse işaretçisini değiştir
+        self.istemci.manuel_baglan.setCursor(Qt.PointingHandCursor)
+        self.istemci.otomatik_baglan_buton.setCursor(Qt.PointingHandCursor)
+        self.istemci.odaya_gir_buton.setCursor(Qt.PointingHandCursor)
+        self.istemci.ses_al_devam.setCursor(Qt.PointingHandCursor)
+        self.istemci.ses_gonder_buton.setCursor(Qt.PointingHandCursor)
+        self.istemci.baglantiyi_kes_buton.setCursor(Qt.PointingHandCursor)
+        #self.istemci.ses_al_devam.setDisabled(True)
 
+    def is_toggle_mic(self):
+        if self.istemci.ses_gonder_buton.isChecked() and not self.is_running:
+            print("Ses gönderimi aktif")
+            self.istemci.ses_gonder_buton.setText("")
+            self.istemci.ses_gonder_buton.setStyleSheet(
+                "QPushButton {background-color: #0d730d; border-radius:15px;color:white;}"
+            )
+            icon = QIcon("acikmikrofon.png")
+            self.istemci.ses_gonder_buton.setIcon(icon)
+            self.is_running = True
+            if self.sayac == 0:
+                self.sayac += 1
+                print("send_audio aktif")
+                self.start_communication()
+
+        else:
+            print("Ses gönderimi pasif")
+            self.istemci.ses_gonder_buton.setStyleSheet(
+                "QPushButton {background-color:#ff4040; border-radius:15px;color:white;}"
+            )
+            icon = QIcon("kapali_mic.png")
+            self.istemci.ses_gonder_buton.setIcon(icon)
+            self.is_running = False
+
+    def is_toggle_headset(self):
+        if self.istemci.ses_al_devam.isChecked():
+            print("Hoparlör aktif")
+            self.istemci.ses_al_devam.setText("")
+            self.istemci.ses_al_devam.setStyleSheet(
+                "QPushButton {background-color: #0d730d; border-radius:15px;color:white;}"
+            )
+            icon = QIcon("kulaklik.jpeg")
+            self.istemci.ses_al_devam.setIcon(icon)
+
+            print(self.sayac_kulaklik)
+            self.is_running_recv = True
+
+        else:
+            print("Hoparlör pasif")
+            self.istemci.ses_al_devam.setStyleSheet(
+                "QPushButton {background-color:#ff4040; border-radius:15px;color:white;}"
+            )
+            icon = QIcon("kapali_kulaklik.jpg")
+            self.istemci.ses_al_devam.setIcon(icon)
+            self.is_running_recv = False
+
+    def receive_file(self, data):
+        try:
+            file_name = data[
+                "file_name"
+            ]  # "file_uploaded" olayında "filename" olarak emit ediliyor
+            file_data_base64 = data["file_data"]
+
+            # Base64 veriyi çöz
+            file_data = base64.b64decode(file_data_base64)
+
+            if not os.path.exists("downloads"):
+                os.makedirs("downloads")
+
+            file_path = os.path.join("downloads", file_name)
+
+            with open(file_path, "wb") as file:
+                file.write(file_data)
+
+            print("Dosya alındı:", file_name)
+        except Exception as e:
+            print(f"Hata dosya alınırken: {e}")
+
+    def decrypt_message(
+        self, encrypted_message, key
+    ):  # gelen şifreli metni ve keyi alıyoruz.
+        cipher_suite = Fernet(base64.urlsafe_b64encode(key).decode("utf-8"))
+        decrypted_message = cipher_suite.decrypt(
+            encrypted_message
+        ).decode()  # şifreleri çözüp normal asıl metnimize ulaşıyoruz
+        return decrypted_message
 
     def receive_text(self):
-        """
-            Metin göndermek için ayrı bir socket bağlantısı kuruyorum.
-            Bunun sebebi ses verileriyle metin verilerinin birbirleriyle karışması ve istenmedik sorunlara yol açmasıydı.
-        """       
-        metin_flag = False
-        try:
-            if not metin_flag:
-                server_socket_text = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                server_socket_text.connect((self.HOST, self.PORT_TEXT))
-            # self.server_socket,adress = se
-                print(f"Metin için Bağlantı sağlandı: {self.HOST}")
-                metin_flag = True
-        except:
-            print("metin alma işlemi duraksadı.")
+        
+        @sio.on(
+            "message"
+        )  # flask projesindeki message olayına 'on' ile bağlanıyoruz. bu şekilde mesaj gönderildiğinde handle_message aktif olacak
+        def handle_message(message):
+            print(message)
+            print("s")
+            if "message" in message:
+                text = message.get("message", "")  # Şifreli mesaj içeriğini al
+                efekt = message.get("efekt", "")  # Efekti al
+                key = message.get("key", "")  # Anahtarı al
 
-        while True:
-            try:
-                data = server_socket_text.recv(1024) #gelen metin verisini 'data' ya eşitle
-                
+                if text == "has entered the room":
+                    pass
+                else:
+                    # Mesajı çöz
+                    print(key)
+                    key = base64.urlsafe_b64decode(key.decode("utf-8"))  # Anahtarı çöz
+                    decrypted_message = self.decrypt_message(text, key)
 
-                metin = data.decode("utf-8") #metin verisini utf-8 'e çevir. Bu türkçe harflerin doğru çıkması için
-                
-                self.istemci.metin_yeri.insertPlainText(metin+". ")
-                alinan_index_bytes = server_socket_text.recv(10)  # 10 byte olarak gelen efekt verisini al 
-                alinan_index = int.from_bytes(alinan_index_bytes, byteorder="big") # alınan baytı tam sayıya çevir.
-                
-                # alınan_index değeri; sunucu tarafından gelen efekt seçimidir. 0 = erkek, 1 = kadın .....  ve efekte göre gelen metni okut.
-                if alinan_index == 0:
-                    
-                    read_man(metin)  
+                    self.istemci.metin_yeri.insertPlainText(
+                        f"Mesaj: {decrypted_message}\n"
+                    )  # Çözülmüş mesajı pyqt5 alanına ekle ve efekte göre okut
+                    if efekt == 0:
+                        read_man(decrypted_message)
+                    elif efekt == 1:
+                        read_text__woman_thread(decrypted_message)
+                    elif efekt == 2:
+                        read_children(decrypted_message)
+                    elif efekt == 3:
+                        read_old_woman(decrypted_message)
+                    elif efekt == 4:
+                        read_old_man(decrypted_message)
+            else:
+                print(message)
+                print("qweqwe")
+                pass
 
-                elif alinan_index ==1:
-                    read_text__woman_thread(metin)
-                    
-                elif alinan_index == 2:
-                    read_children(metin)
-                    
-                elif alinan_index == 3:
-                    read_old_woman(metin)
+    def enter_room(self,):  # flask ile kurulan odaya giriş yapılıyor. Ses ve metin alışverişi başlatılıyor
+        room = self.istemci.Oda_kodu_yeri.text()
+        name = "öğrenci"
 
-                elif alinan_index == 4:
-                    read_old_man(metin)
-                
-                
-                
-            except ConnectionResetError:
-                if not metin_flag:
-                    server_socket_text = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                    server_socket_text.connect((self.HOST, self.PORT_TEXT))
-                # self.server_socket,adress = se
-                    print(f"Metin için Bağlantı sağlandı: {self.HOST}")
-                    metin_flag = True
-                break
-        server_socket_text.close()
+        
+        @sio.event
+        def connect():
+            print("Connected to server")
+            sio.emit("baglan", {"name": name, "room": room})
+            
+        
+        self.receive_text()
+        # self.send_output_device_list()
+        sio.on("index", self.select_output_device)
+        sio.on("file_uploaded", self.receive_file)
+        sio.on("data1", self.get_sound) 
+
+        
+        sio.connect("http://192.168.1.35:5000", auth={"name": name, "room": room})
+        
+
+    def enter_room_thread(self):
+        threading.Thread(target=self.enter_room).start()
 
     def receive_text_thread(self):
         ti1 = threading.Thread(target=self.receive_text)
         ti1.start()
-    
 
-    
 
-       
 
     def send_audio(self):
-        p = pyaudio.PyAudio()
-
-        stream = p.open(format=pyaudio.paInt16,
-                             channels=self.CHANNELS,
-                             rate=self.RATE,
-                             input=True,
-                             frames_per_buffer=self.CHUNK)
-
-        min_esik_deger = 100
-        max_esik_deger = 850
-
-        while self.is_running:
+        try:
+            print("ses aktarımı başladı")
+            p = pyaudio.PyAudio()
+            stream = p.open(
+                format=pyaudio.paInt16,
+                channels=self.CHANNELS,
+                rate=44100,
+                input=True,
+                frames_per_buffer=self.CHUNK,
+            )
             
-            data = stream.read(self.CHUNK)
-            audio_data = np.frombuffer(data, np.int16)
-            
-
-            try:
-                sound_vol = np.abs(audio_data).mean()
-                if min_esik_deger < sound_vol < max_esik_deger: # mikrofona gelen ses verilerin MUTLAK değerinin ortalamasını alarak ses şiddetini buluyoruz. ortalama, eşik değerinden yüksekse ses iletim devam ediyor.
-                    mikrofon = True
-                
-                else:
-                    mikrofon  = False
-                    """
-                    gelen ses verisi ortalaması max esik değerin üstünde ise sesin seviyesi azzaltılıyor
-                    eğer ses verisi ortalaması min esik değerin altında ise sesin seviyesi arttırılıyor.
-                    """
-                    if sound_vol > max_esik_deger:
-                        audio_data = (audio_data // 3).astype(np.int16)
-                        mikrofon = True
-                    elif sound_vol < min_esik_deger:
-                        audio_data = (audio_data * 5).astype(np.int16)
-                        mikrofon = True
-
-                if self.is_running and mikrofon:
+            while True:
+                while self.is_running :
+                 #if keyboard.is_pressed('a'):
                     
-                    self.server_socket.sendall(audio_data)
-                if not self.is_running:
-                    return
-            except Exception as e:
-                if self.server_socket is not None and self.contunie ==True:
+                    try:
+                        
+                            data = stream.read(self.CHUNK, exception_on_overflow=False)
+                            audio_data = np.frombuffer(data, dtype=np.int16)
+                            audio_data = audio_data.tobytes()
 
-                    print("Beklenmedik bir hata oluştu... Lütfen bekleyiniz: ", e)
-                    print("Yeniden bağlanılmaya çalışılıyor.")
-                    self.connect_to_server_Automatic()
-           
-
-        stream.stop_stream()
-        stream.close()
-        p.terminate()
+                            sio.emit("audio_data2", {"audio_data2": audio_data})
+                            audio_data = None
+                    except Exception as e:
+                       while True:
+                            try:
+                                print("Bağlanılmaya Çalışılıyor.")
+                                self.enter_room("Doktor",self.istemci.Oda_kodu_yeri.text()) #bağlantı sağlandığında Döngüyü sonlandır
+                                break 
+                            except:
+                                print("Tekrar deneniliyor...")
+                                pass # hata alındığında tekrar dene
+            
+        except:
+            print("kapandı")
+            stream.stop_stream()
+            stream.close()
+            p.terminate()
 
     def start_communication(self):
-        if not self.is_running:
-            self.is_running = True
-            threading.Thread(target=self.send_audio).start()
-    
-    def stop_communication(self):
-        if self.is_running:
-            self.is_running = False
+        threading.Thread(target=self.send_audio).start()
 
-    def receive_audio(self):
-        #hoparlor=self.select_output_device()
-        
+    
+    """def get_sound(self, data):
         while not self.output_stream:
             self.play_button_clicked()
-            
-        p = pyaudio.PyAudio()
-        stream = p.open(format=self.FORMAT,
-                        channels=self.CHANNELS,
-                        rate=self.RATE,
-                        output=True)
-        
-        
-        while self.is_running_recv:
-            
-            try:
-                
-                data = self.server_socket.recv(self.CHUNK)
-                
-                if not data:
-                    break
 
-                if self.Event.is_set() and self.contunie:
-                    #stream.write(data)
-                    
-                    self.play_server_output(data)
-            except Exception as e:
-                if self.server_socket is not None and self.contunie:
-                    print("Bağlantı sıfırlandı... Yeniden bağlanılıyor.\n", e)
-                    self.connect_to_server_Automatic()
-                    
-                    data = self.server_socket.recv(self.CHUNK)
+        try:
+            if data:
+                audio_data = data.get("audio_data", b"")
+                # print(audio_data)
+                if self.is_running_recv:
+                    # self.play_button_clicked()
+                    self.play_server_output(audio_data)
+                    # self.stream.write(audio_data)
+            elif not data:
+                print("dadta yok")
 
-                    if not data:
-                        break
-
-                    if self.Event.is_set() and self.contunie:
-                        stream.write(data)
-                    
-
-        stream.stop_stream()
-        stream.close()
-        self.server_socket.close()
-        p.terminate()
-        #şu anda yeniden bağlanmada sorun var hop. listesi gönderilmeli
-
-
-    def get_sound(self):
-        self.is_running_recv = True
-        threading.Thread(target=self.receive_audio).start()
-        #self.get_sound_button.config(state="disabled")
-    def get_sound_stop(self):
-        self.Event.clear()
-
-
-    def get_sound_continue(self):
-        self.Event.set()
-
-        
-    def server_hoparlor(self):
-        hoparlor_listesi_str = self.server_socket.recv(4096)
-        hoparlor_listesi = pickle.loads(hoparlor_listesi_str)
-        for index,hoparlor in enumerate(hoparlor_listesi):
-            listele=f"{index+1}.Hoparlor: {hoparlor}"
-            print(listele)
-
-    def hoparlor_liste(self): # cihazın hoparlör listesini server bilgisayara pickle ile yolla 
-        p = pyaudio.PyAudio()
-
-        self.output_device_list = []
-        for i in range(p.get_device_count()):
-            device_info = p.get_device_info_by_index(i)
-            if device_info["maxOutputChannels"] > 0:
-                device_name = device_info["name"]
-                self.output_device_list.append(device_name)
-                if len(self.output_device_list) == 8:
-                    break
-
-        model = QStandardItemModel()
-        for index, device_name in enumerate(self.output_device_list):
-            item = QStandardItem(device_name)  # Yalnızca bir metin (string) verisi ekle
-            model.appendRow(item)
-
-        hoparlor_liste_str = pickle.dumps(self.output_device_list)
-        self.server_socket.send(hoparlor_liste_str)
-
-
-
-        
-
-
-        
-        
-    def connect_to_server_Automatic(self):  # Bu fonksiyon aktif olduğunda socket ile açılan servera otomatik olarak bağlanır. 
-        ip_address = socket.gethostbyname(socket.gethostname())
-
-        # IP adresinin ilk üç bölümünü alarak IP aralığı oluştur
-        ip_range = '.'.join(ip_address.split('.')[:3]) + '.0/24' # bu güncelleme ile ip adres kodu değişse de ip taraması yapılabiecek
-        nm = nmap.PortScanner()
-        nm.scan(ip_range, arguments='-p {}'.format(self.PORT))
-        hosts = nm.all_hosts()
-        
-        server_ip = None  # Sadece socket ile sunucu açan bilgisayarın IP adresi
-
-        for host in hosts:
-            try:
-                self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                #self.server_socket.settimeout(1)
-                
-                server_ip = host
-                print(f"Sadece socket ile sunucu açan bilgisayarın IP Adresi: {server_ip}")
-
-                """if server_ip:
-                    itemtext = f"{server_ip}"
-                    item = QListWidgetItem(itemtext)
-                    self.istemci.ip_listesi.addItem(item)"""
-        
-        
-                #combobox'daki seçilen ip adresini Host'a ata
-                #selected_ip = self.istemci.ip_combobox.currentText()
-                self.HOST = server_ip
-                
-                #self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                self.server_socket.connect((self.HOST, self.PORT))
-                print(f"Bağlantı sağlandı: {self.HOST}")
-                time.sleep(1)
-                #self.server_hoparlor()
-                self.hoparlor_liste()
-            # Hoparlör listesini terminalde göster
-                
-                time.sleep(1)
-                self.receive_text_thread()
-                
-                time.sleep(1)
-                self.get_sound()
-                
-                time.sleep(1)
-                self.get_sound_continue()
-
-                self.start_communication()
-                time.sleep(1)
-
-                
-                
+        except Exception as e:
+            print("Ses alma hatası:", str(e))"""
+    
+    def get_sound(self, data):
+        try:
+            if self.stream is None:
                 p = pyaudio.PyAudio()
-                stream = p.open(format=pyaudio.paInt16,
-                                    channels=self.CHANNELS,
-                                    rate=self.RATE,
-                                    input=True,
-                                    frames_per_buffer=self.CHUNK)
-
-                speaker_stream = p.open(format=pyaudio.paInt16,
-                                            channels=self.CHANNELS,
-                                            rate=self.RATE,
-                                            output=True)
-                
-
-                stream.stop_stream()
-                stream.close()
-                speaker_stream.stop_stream()
-                speaker_stream.close()
-                p.terminate()
-
-
-
-
-                break
-            except (ConnectionRefusedError, socket.timeout):
-                print("Sanırım Bu değil")
-                pass
-
-        # IP adresi bulunduysa, listeye ekleyin
-        
-
-    def disconnect(self):
-        """
-        ses gönderim ve ses alım işlemlerini durdur.
-        Bağlantıları kapat"""
-        self.is_running = False  
-        self.is_running_recv = False
-        self.contunie = False
-
-        if self.server_socket is not None:
-            try:
-
-                self.server_socket.shutdown(socket.SHUT_RDWR)   
-                self.server_socket.close()
-            except (OSError,AttributeError):
-                print("gg")
-                pass
-       
-
-    def scan_ip(self):  # çevredeki diğer cihazların ip numaralarını listeler
-
-        ip_address = socket.gethostbyname(socket.gethostname())
-
-        # IP adresinin ilk üç bölümünü alarak IP aralığı oluştur
-        ip_range = '.'.join(ip_address.split('.')[:3]) + '.0/24' # bu güncelleme ile ip adres kodu değişse de ip taraması yapılabiecek
-        nm = nmap.PortScanner()
-        nm.scan(ip_range, arguments='-sn')
-        hosts = nm.all_hosts()
-        print("Ağdaki tüm cihazların IP ve MAC adresleri:")
-
-            
-        for host in hosts:
-            if 'mac' in nm[host]['addresses']:
-                ip_address = nm[host]['addresses']['ipv4']
-                mac_address = nm[host]['addresses']['mac']
-                item_text = f"{ip_address}    {mac_address}"
-                item = QListWidgetItem(item_text)
-                self.istemci.ip_listesi.addItem(item)
-
-        """
-        Eğer listedeki ip numaralarla daha önce bağlantı kurulduysa mavi renge
-        eğer listedeki ip numarası en son bağlanan ip numarasına eşitse yeşi renge boyancaktır.""" 
-            
-        with open(self.ip_file, "r") as f:
-            ip_addresses_from_file = [line.strip() for line in f]
-
-        for i in range(self.istemci.ip_listesi.count()):
-            item = self.istemci.ip_listesi.item(i)
-            if item is not None:
-                ip_from_list = item.text().split()[0]
-                if item is not None and item.text().split()[0] == self.istemci.ip_combobox.currentText():
-                    brush_background = QBrush(QColor("green"))
-                    brush_foreground = QBrush(QColor("white"))
-                    item.setBackground(brush_background)
-                    item.setForeground(brush_foreground)
-                elif ip_from_list in ip_addresses_from_file:
-                    brush_background = QBrush(QColor("#1874cd"))
-                    brush_foreground = QBrush(QColor("white"))
-                    item.setBackground(brush_background)
-                    item.setForeground(brush_foreground)
-
-        if not item: #eğer local ağda cihaz bulunamadıysa nete bak.  amaç servera
-
-            url = "https://mesajlasma-41995f5c6231.herokuapp.com/deneme.html"
-
-            response = requests.get(url)
-
-            if response.status_code == 200:
-                # Web sayfası başarılı bir şekilde alındı.
-                # sayfa içeriğini işle
-                soup = BeautifulSoup(response.text, 'html.parser')
-                ip_list = []
-
-                # Tüm <li> etiketlerini bul
-                for li in soup.find_all('li'):
-                    ip = li.text.strip()  # <li> içeriğini al ve boşlukları temizle
-                    ip_list.append(ip)
-
-                # IP adreslerini yazdır
-                print("Bağlı IP Adresleri:")
-                for ip in ip_list:
-                    item_text = f"{ip}"
-                    item = QListWidgetItem(item_text)
-                    self.istemci.ip_listesi.addItem(item)
-                    
+                self.stream = p.open(
+                    format=self.FORMAT,
+                    channels=self.CHANNELS,
+                    rate=self.RATE,
+                    output=True,
+                    frames_per_buffer=self.CHUNK,
+                )
+            if data:
+                audio_data = data.get("audio_data", b"")
+                # print(audio_data)
+                if self.is_running_recv:
+                    self.stream.write(audio_data)
             else:
-                print("Sayfa alınamadı. HTTP durum kodu:", response.status_code)
-                
-                
+                print("data yok")
 
+        except Exception as e:
+            print("Ses alma hatası:", str(e))
+            if self.stream is not None:
+                        self.stream.close()
+                        self.stream.stop_stream()
 
+    def get_sound_f(self):
+        self.is_running_recv = True
+        threading.Thread(target=self.get_sound).start()
 
-    def connect_to_server_Manuel(self):
-        # combobox da seçilen ip numarasına kullanıcı isterse "manuel bağlan" tuşu iele bağlanılır...
-        #combobox'daki seçilen ip adresini Host'a ata
-        #manuel bağlanma başlatıldı.
-        selected_ip = self.istemci.ip_combobox.currentText()
-        self.HOST = selected_ip
-        print("{} - bağlanılmaya çalışıyor".format(self.HOST))
-        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server_socket.connect((self.HOST, self.PORT))
-        print(f"Bağlantı sağlandı: {self.HOST}")
-        
-        time.sleep(1)
-        #self.server_hoparlor()
-        self.hoparlor_liste()
-    # Hoparlör listesini terminalde göster
-
-        time.sleep(1)
-        self.receive_text_thread()
-
-        time.sleep(1)
-        self.get_sound()
-
-
-        time.sleep(1)
-        self.get_sound_continue()
-        self.start_communication()
-        time.sleep(1)
-        
-        
-        p = pyaudio.PyAudio()
-        stream = p.open(format=pyaudio.paInt16,
-                            channels=self.CHANNELS,
-                            rate=self.RATE,
-                            input=True,
-                            frames_per_buffer=self.CHUNK)
-        speaker_stream = p.open(format=pyaudio.paInt16,
-                                    channels=self.CHANNELS,
-                                    rate=self.RATE,
-                                    output=True)
-        
-        stream.stop_stream()
-        stream.close()
-        speaker_stream.stop_stream()
-        speaker_stream.close()
-        p.terminate()
-
-
+        # self.get_sound_button.config(state="disabled")
 
     def item_double_clicked(self, item):
         # Çift tıklanan seçeneğin metnini al
@@ -510,7 +328,6 @@ class istemci_page(QMainWindow):
         self.istemci.ip_combobox.addItem(ip_adres)
         self.save_ip_address(ip_adres)
 
-
     def ip_listesini_comboboxa_ekle(self):
         ip_addresses = []
         try:
@@ -519,12 +336,11 @@ class istemci_page(QMainWindow):
                     ip_addresses.append(line.strip())
         except FileNotFoundError:
             pass
-        
+
         # Alınan IP adreslerini combobox'a ekle
         for ip_address in ip_addresses:
             self.istemci.ip_combobox.addItem(ip_address)
-            #self.save_ip_address(ip_address)
-
+            # self.save_ip_address(ip_address)
 
     def save_ip_address(self, ip_address):
         with open(self.ip_file, "r") as f:
@@ -533,11 +349,11 @@ class istemci_page(QMainWindow):
         if ip_address not in ip_addresses:
             ip_addresses.insert(0, ip_address)  # Yeni IP adresini en üstte ekleyin
 
-            with open(self.ip_file, "w") as f:  # Dosyanın içeriğini yeniden yazmak için "w" modunu kullanın
+            with open(
+                self.ip_file, "w"
+            ) as f:  # Dosyanın içeriğini yeniden yazmak için "w" modunu kullanın
                 for ip in ip_addresses:
                     f.write(ip + "\n")
-
-        
 
     def set_output_stream(self, output_device):
         p = pyaudio.PyAudio()
@@ -553,7 +369,8 @@ class istemci_page(QMainWindow):
         except OSError as e:
             print("Hoparlör bağlantısı yapılamadı:", e)
             self.output_stream = None
-                            ##### ********** ######
+            ##### ********** ######
+
     def play_server_output(self, data):
         if self.output_stream is not None:
             try:
@@ -563,42 +380,89 @@ class istemci_page(QMainWindow):
                 self.output_stream.close()
                 self.output_stream.stop_stream()
                 self.output_stream = None
-                
-                
-                
+
         else:
             print("Hoparlör seçiniz...")
-            
-                        ##### ********** ######
-    def select_output_device(self):
-        index_bytes = self.server_socket.recv(10)  # İhtiyaca göre byte sayısını ayarlayın
-        index = int.from_bytes(index_bytes,byteorder="big")
-        print(index)
-        device_indexes = index
-        print(device_indexes)
-        if device_indexes is not None:
-            return device_indexes
+
+            ##### ********** ######
+
+    def select_output_device(self, index):
+        row = index["index"]
+
+        self.device_indexes = row
+        print(self.device_indexes)
+        if self.device_indexes is not None:
+            return self.device_indexes
         else:
             # Eğer herhangi bir öğe seçilmemişse, None döndür
             return None
-        
-
 
     def play_button_clicked(self):
-        
-        output_device = self.select_output_device()
-        print(output_device)
-        if output_device is not None:
-            print("Output Device:", output_device)
-            self.set_output_stream(output_device)
-            self.stop_event.clear()
-        else:
-            print("Hoparlör seçilmedi. Devam edemiyoruz.")
+        print(self.device_indexes)
+        # ☺while True:
+
+        try:
+            if self.device_indexes is not None:
+                print("Output Device:", self.device_indexes)
+                self.set_output_stream(self.device_indexes)
+                self.istemci.ses_al_devam.setDisabled(False)
+                self.stop_event.clear()
+            else:
+                print("Hoparlör seçilmedi. Devam edemiyoruz.")
+
+        except Exception as e:
+            print("hoparlör seçiminde hata:", e)
+        # self.play_server_output(data)
+
+    def get_background_color(self):
+        return self.background_color
+
+    def oda_kodu_ID(self):
+        from src_py.kayit_yeri_pyqt5 import (
+            kayit,
+        )  # kütüphane kısmında import etmedim çünkü circle hatası veriyordu.
+
+        self.kullanici_ad = kayit()
+        ID = self.kullanici_ad.kullanici_ad_signal()
+        print(ID)
+
+        """
+        MySQL veritabanına bağlantı oluşturur.
+        """
+
+        connection = mysql.connector.connect(
+            host="rise.czfoe4l74xhi.eu-central-1.rds.amazonaws.com",
+            user="admin",
+            password="Osmaniye12!",
+            database="rise_data",
+        )
+        cursor = connection.cursor()
+        query = "SELECT oda_kodu FROM veriler WHERE kullanici_ad = %s"
+        cursor.execute(query, (ID,))
+        kullanici_verileri = cursor.fetchone()
+
+        connection.commit()
+        connection.close()
+        self.istemci.Oda_kodu_yeri.setText(kullanici_verileri[0])
+        self.enter_room()
+
+    def send_output_device_list(
+        self,
+    ):  # cihazın hoparlör listesini server bilgisayara  yolla
+        p = pyaudio.PyAudio()
+
+        output_device_list = []
+        for i in range(p.get_device_count()):
+            device_info = p.get_device_info_by_index(i)
+            if device_info["maxOutputChannels"] > 0:
+                device_name = device_info["name"]
+                output_device_list.append(device_name)
+                if len(output_device_list) == 8:
+                    break
+        print("yolladım")
+        sio.emit("output_device_list", {"list": output_device_list})
 
 
-        
-        #self.play_server_output(data)
-        
 """app = QApplication([])
 window = istemci_page()
 window.show()

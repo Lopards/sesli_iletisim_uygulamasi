@@ -48,34 +48,37 @@ class anlik_erkek_page(QWidget):
         self.p.terminate()
 
     def baslat_ses_degisimi(self):
-        self.is_running = True
-        self.stream = self.p.open(format=self.FORMAT,
-                                  channels=self.CHANNELS,
-                                  rate=self.RATE,
-                                  input=True,
-                                  output=True,
-                                  frames_per_buffer=self.CHUNK)
+        try:
+            self.is_running = True
+            self.stream = self.p.open(format=self.FORMAT,
+                                    channels=self.CHANNELS,
+                                    rate=self.RATE,
+                                    input=True,
+                                    output=True,
+                                    frames_per_buffer=self.CHUNK)
 
-        kaydedilen_list = []
-        while self.is_running:
-            input_data = self.stream.read(self.CHUNK)
-            kaydedilen_list.append(input_data)
-            audio_data = np.frombuffer(input_data, dtype=np.float32) * 0.4
+            kaydedilen_list = []
+            while self.is_running:
+                input_data = self.stream.read(self.CHUNK)
+                kaydedilen_list.append(input_data)
+                audio_data = np.frombuffer(input_data, dtype=np.float32) * 0.4
 
-            
-            kaydedilen_sinyal = np.frombuffer(b''.join(kaydedilen_list[-int(self.RATE / self.CHUNK * self.DELAY_SECONDS):]), dtype=np.int16)
-            cinsiyet = self.classify_gender(kaydedilen_sinyal)
+                
+                kaydedilen_sinyal = np.frombuffer(b''.join(kaydedilen_list[-int(self.RATE / self.CHUNK * self.DELAY_SECONDS):]), dtype=np.int16)
+                cinsiyet = self.classify_gender(kaydedilen_sinyal)
 
-            if cinsiyet == "Kadın":
-                    shifted_audio_data = signal.resample(audio_data, int(len(audio_data) * self.PITCH_SHIFT_FACTOR))
-                    self.stream.write(shifted_audio_data.tobytes())
-            elif cinsiyet == "Erkek":
-                    # Ses değiştirme fonksiyonuna girmeden doğrudan sesi yolla
-                    self.stream.write(audio_data.tobytes())
+                if cinsiyet == "Kadın":
+                        shifted_audio_data = signal.resample(audio_data, int(len(audio_data) * self.PITCH_SHIFT_FACTOR))
+                        self.stream.write(shifted_audio_data.tobytes())
+                elif cinsiyet == "Erkek":
+                        # Ses değiştirme fonksiyonuna girmeden doğrudan sesi yolla
+                        self.stream.write(audio_data.tobytes())
 
-        self.stream.stop_stream()
-        self.stream.close()
-        self.p.terminate()
+            self.stream.stop_stream()
+            self.stream.close()
+            self.p.terminate()
+        except:
+             return self.baslat_ses_degisimi()
 
     def classify_gender(self, audio_data):
         if np.mean(audio_data) > 0:

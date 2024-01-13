@@ -5,6 +5,7 @@ from src_py.src_ui.server_man import Ui_Form
 from PyQt5.QtGui import QStandardItem, QStandardItemModel, QIcon
 from flask_session import Session,sessions  
 from flask import session
+import sounddevice as sd
 import socket
 import pyaudio
 import numpy as np
@@ -17,7 +18,7 @@ from string import ascii_uppercase
 from scipy import signal
 import os
 from cryptography.fernet import Fernet
-
+import base64
 import keyboard # tuşa basıp konuşabilmek için
 sio = socketio.Client()
 kullanici_ad = ""
@@ -37,12 +38,12 @@ class server_erkek_page(QWidget):
         self.server_erkek.sesli_yaz_durdur_buton.clicked.connect(
             self.stop_speech_to_text
         )
-        self.server_erkek.Gonder_buton.clicked.connect(self.yazi_gonder)
+        self.server_erkek.Gonder_buton.clicked.connect(self.yazi_gonder_t)
         # self.server_erkek.baglanti_kur.clicked.connect(self.connect_to_server_thread)
         # self.server_erkek.settings.clicked.connect(self.settings)
 
         # self.server_erkek.Durdur_buton.clicked.connect(self.stop)
-        self.server_erkek.baglantiyi_kes_buton.clicked.connect(self.see_members_on_room_signal)
+        self.server_erkek.odadan_at_buton.clicked.connect(self.remove_member)
 
         # self.server_erkek.Ses_al_buton.clicked.connect(self.start_get_sound)
 
@@ -82,7 +83,7 @@ class server_erkek_page(QWidget):
         
         self.HOST = None
         self.FORMAT = pyaudio.paInt16
-        self.CHUNK = 1024
+        self.CHUNK = 2048
         self.CHANNELS = 1
         self.RATE = 44100
         self.PITCH_SHIFT_FACTOR = 1.2
@@ -167,6 +168,7 @@ class server_erkek_page(QWidget):
             icon = QIcon("kapali_mic.png")
             self.server_erkek.Baslat_buton.setIcon(icon)
             self.is_running = False
+            
 
     def is_toggle_headset(self):
         if self.server_erkek.Ses_a_devaml_buton.isChecked():
@@ -197,13 +199,24 @@ class server_erkek_page(QWidget):
         file_path, _ = file_dialog.getOpenFileName(
             self, "Dosya Seç", "", "All Files (*)"
         )
-        # Dosya adını al
-        file_name = os.path.basename(file_path)
 
-        # Socket.io üzerinden dosyayı gönder
-        with open(file_path, "rb") as file:
-            sio.emit("file_upload", {"file_name": file_name, "file_data": file.read()})
-        print("Dosya gönderildi")
+        if not file_path:
+            print("Dosya seçilmedi.")
+            return
+
+        try:
+            # Dosya adını al
+            file_name = os.path.basename(file_path)
+
+            # Dosyayı oku ve Base64 ile kodla
+            with open(file_path, "rb") as file:
+                file_data_base64 = base64.b64encode(file.read()).decode("utf-8")
+
+            sio.emit("file_upload", {"file_name": file_name, "file_data": file_data_base64})
+            print("Dosya gönderildi")
+
+        except Exception as e:
+            print(f"Hata: {e}")
 
     def oda_ismi(self):  # flask için Oda kodu oluşturuyoruz
         rooms = {}
@@ -228,6 +241,7 @@ class server_erkek_page(QWidget):
             
             sio.on("members",self.see_members_on_room)# oda üyelerini göstermek için.
 
+
             @sio.on("connect")
             def on_connect():
                 print("Bağlandı.")
@@ -239,13 +253,14 @@ class server_erkek_page(QWidget):
                 print("Bağlantı kesildi.")
             
             self.create_room(name, room_code)
+            
         except Exception as e:
             print("Oda kurarken bir sorun oluştu. Onarılmaya çalışılıyor.")
 
             while True:
                 try:
                     print("Bağlanılmaya Çalışılıyor.")
-                    self.create_room(name,room_code) #bağlantı sağlandığında Döngüyü sonlandır
+                    self.create_room(name, room_code) #bağlantı sağlandığında Döngüyü sonlandır
                     break 
                 except:
                     print("Tekrar deneniliyor...")
@@ -255,7 +270,7 @@ class server_erkek_page(QWidget):
     def create_room(self, name, room_code):
         print("oda oluşturuluyor")
         sio.connect(
-            "http://192.168.1.45:5000"
+            "http://192.168.1.35:5000"
         )  # Flask uygulamanızın adresine göre güncelleyin.
         sio.emit("create_room", {"name": name, "room": room_code})
         
@@ -304,6 +319,29 @@ class server_erkek_page(QWidget):
     def see_members_on_room(self,members):
         print("Odadaki Üyeler: ",members)
 
+        # öğrenci tarafından gelen hoparlor listesini al ve arayüzdeki listeye aktar
+        member_list = members["members"]
+        print("liste geldi")
+        model = QStandardItemModel()
+        for member in member_list:
+            if member != "Doktor":
+                item = QStandardItem(member)
+                model.appendRow(item)
+        self.server_erkek.uyeListesi.setModel(model)
+        
+
+        #################******######################
+    def remove_member(self):
+        selected_indexes = self.server_erkek.uyeListesi.selectedIndexes()
+        
+        if selected_indexes:
+            selected_item = selected_indexes[0]
+            member_to_be_remove = selected_item.data()
+            sio.emit("remove_member", member_to_be_remove)
+
+
+
+
     def send_audio_e(self):
         try:
             print("ses aktarımı başladı")
@@ -315,15 +353,26 @@ class server_erkek_page(QWidget):
                 input=True,
                 frames_per_buffer=self.CHUNK,
             )
+            
             while True:
-                while self.is_running:
+                while self.is_running :
+                 #if keyboard.is_pressed('a'):
+                    
                     try:
-                        while keyboard.is_pressed('m'):
+                        
                             data = stream.read(self.CHUNK, exception_on_overflow=False)
                             audio_data = np.frombuffer(data, dtype=np.int16)
+
                             audio_data = audio_data.tobytes()
 
                             sio.emit("audio_data", {"audio_data": audio_data})
+                            
+                            """converted_data = signal.resample(audio_data,
+                                                             int(len(audio_data) * self.PITCH_SHIFT_FACTOR)) * 1.4
+                            converted_data = converted_data.astype(np.int16)
+                            converted_data_bytes = converted_data.tobytes()
+
+                            sio.emit("audio_data", {"audio_data": converted_data_bytes})"""
                             audio_data = None
                     except Exception as e:
                        while True:
@@ -335,19 +384,18 @@ class server_erkek_page(QWidget):
                                 print("Tekrar deneniliyor...")
                                 pass # hata alındığında tekrar dene
             
-        finally:
+        except:
             print("kapandı")
             stream.stop_stream()
             stream.close()
             p.terminate()
+    
 
 
 
     def start_communication(self):
         print("start başlad")
-
-        self.t = threading.Thread(target=self.send_audio_e)
-        self.t.start()
+        threading.Thread(target=self.send_audio_e).start()
         #################******######################
 
     def get_sound(self, data):
@@ -371,15 +419,15 @@ class server_erkek_page(QWidget):
 
         except Exception as e:
             print("Ses alma hatası:", str(e))
-            """if self.stream is not None:
+            if self.stream is not None:
                         self.stream.close()
-                        self.stream.stop_stream()"""
+                        self.stream.stop_stream()
 
         ##### ********** ######
 
     def start_get_sound(self):
+        
         self.contunie = True
-
         self.is_running_recv = True
         threading.Thread(target=self.get_sound).start()
 
@@ -553,10 +601,15 @@ class server_erkek_page(QWidget):
                     "key": key,
                 },
             )
-        except KeyboardInterrupt:
-            print("bağlantı sorunu oldu--Lütfen bekleyiniz.")
-            self.create_room(name,room)
-            pass
+        except:
+            while True:
+                        try:
+                            print("Bağlanılmaya Çalışılıyor.")
+                            self.create_room("Doktor",self.room_code) #bağlantı sağlandığında Döngüyü sonlandır
+                            break 
+                        except:
+                            print("Tekrar deneniliyor...")
+                            pass # hata alındığında tekrar dene
 
             # sio.wait()
 
@@ -573,7 +626,7 @@ class server_erkek_page(QWidget):
 
     def encrypt_message(self, message, key):  # keyi ve mesajı al
         cipher_suite = Fernet(key)  # şifreli paketi oluştur
-        encrypted_message = cipher_suite.encrypt(
+        encrypted_message = cipher_suite.encrypt(   
             message.encode()
         )  # şifrelenmiş mesajı oluştur ve return et
         return encrypted_message

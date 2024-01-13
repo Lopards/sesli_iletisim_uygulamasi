@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'istemci.ui'
+# Form implementation generated from reading ui file 'istemci2.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.9
 #
@@ -11,78 +11,262 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 
-class Ui_Dialog(object):
-    def setupUi(self, Dialog):
-        Dialog.setObjectName("Dialog")
-        Dialog.resize(753, 670)
-        Dialog.setMinimumSize(QtCore.QSize(753, 670))
-        self.ip_grup_box = QtWidgets.QGroupBox(Dialog)
-        self.ip_grup_box.setGeometry(QtCore.QRect(20, 20, 351, 371))
-        self.ip_grup_box.setObjectName("ip_grup_box")
-        self.ip_combobox = QtWidgets.QComboBox(self.ip_grup_box)
-        self.ip_combobox.setGeometry(QtCore.QRect(30, 30, 111, 22))
+class Ui_Form(object):
+    def setupUi(self, Form):
+        Form.setObjectName("Form")
+        Form.resize(809, 578)
+        Form.setMinimumSize(QtCore.QSize(809, 578))
+        Form.setStyleSheet("color:white;\n"
+"background: #404040;")
+        self.ip_combobox = QtWidgets.QComboBox(Form)
+        self.ip_combobox.setGeometry(QtCore.QRect(40, 20, 121, 28))
+        self.ip_combobox.setStyleSheet("QComboBox {\n"
+"    border: 2px solid #67b26f; /* Kenarlık rengi ve kalınlığı */\n"
+"    border-radius: 5px; /* Kenarlık köşe yuvarlama */\n"
+"}\n"
+"")
         self.ip_combobox.setObjectName("ip_combobox")
-        self.ip_tara_buton = QtWidgets.QPushButton(self.ip_grup_box)
-        self.ip_tara_buton.setGeometry(QtCore.QRect(160, 30, 81, 28))
-        self.ip_tara_buton.setObjectName("ip_tara_buton")
-        self.ip_listesi = QtWidgets.QListWidget(self.ip_grup_box)
-        self.ip_listesi.setGeometry(QtCore.QRect(30, 80, 271, 191))
-        self.ip_listesi.setObjectName("ip_listesi")
-        self.otomatik_baglan_buton = QtWidgets.QPushButton(self.ip_grup_box)
-        self.otomatik_baglan_buton.setGeometry(QtCore.QRect(120, 290, 93, 28))
+        self.otomatik_baglan_buton = QtWidgets.QPushButton(Form)
+        self.otomatik_baglan_buton.setGeometry(QtCore.QRect(150, 270, 101, 31))
+        self.otomatik_baglan_buton.setStyleSheet("/* Normal durum için */\n"
+"QPushButton {\n"
+"    background-color: #95A5A6; /* İlk renk */\n"
+"    color: #ffffff; /* Metin rengi */\n"
+"    border-radius:15px;\n"
+"}\n"
+"\n"
+"/* Üzerine gelindiğinde */\n"
+"QPushButton:hover {\n"
+"    background-color: #0d730d; /* İkinci renk */\n"
+"    \n"
+"}\n"
+"\n"
+"/* Tıklandığında */\n"
+"QPushButton:pressed {\n"
+"    background-color: #393B3B; /* Üçüncü renk */\n"
+"    color: #000000; /* Tıklandığında metin rengini değiştirin, örneğin siyah yapın */\n"
+"}\n"
+"\n"
+"/* Tıklandıktan sonraki durum için (örneğin, bir toggle düğmesi) */\n"
+"QPushButton:checked {\n"
+"    background-color: #9932CC; /* Dördüncü renk */\n"
+"    color: #ffffff; /* Tıklandıktan sonraki durumda metin rengini değiştirin */\n"
+"}")
         self.otomatik_baglan_buton.setObjectName("otomatik_baglan_buton")
-        self.manuel_baglan = QtWidgets.QPushButton(self.ip_grup_box)
-        self.manuel_baglan.setGeometry(QtCore.QRect(250, 30, 71, 28))
+        self.ip_tara_buton = QtWidgets.QPushButton(Form)
+        self.ip_tara_buton.setGeometry(QtCore.QRect(180, 20, 93, 31))
+        self.ip_tara_buton.setStyleSheet("/* Normal durum için */\n"
+"QPushButton {\n"
+"    background-color: #95A5A6; /* İlk renk */\n"
+"    color: #ffffff; /* Metin rengi */\n"
+"    border-radius:15px;\n"
+"}\n"
+"\n"
+"/* Üzerine gelindiğinde */\n"
+"QPushButton:hover {\n"
+"    background-color: #0d730d; /* İkinci renk */\n"
+"    \n"
+"}\n"
+"\n"
+"/* Tıklandığında */\n"
+"QPushButton:pressed {\n"
+"    background-color: #393B3B; /* Üçüncü renk */\n"
+"    color: #000000; /* Tıklandığında metin rengini değiştirin, örneğin siyah yapın */\n"
+"}\n"
+"\n"
+"/* Tıklandıktan sonraki durum için (örneğin, bir toggle düğmesi) */\n"
+"QPushButton:checked {\n"
+"    background-color: #9932CC; /* Dördüncü renk */\n"
+"    color: #ffffff; /* Tıklandıktan sonraki durumda metin rengini değiştirin */\n"
+"}")
+        self.ip_tara_buton.setObjectName("ip_tara_buton")
+        self.manuel_baglan = QtWidgets.QPushButton(Form)
+        self.manuel_baglan.setGeometry(QtCore.QRect(280, 20, 93, 31))
+        self.manuel_baglan.setStyleSheet("/* Normal durum için */\n"
+"QPushButton {\n"
+"    background-color: #95A5A6; /* İlk renk */\n"
+"    color: #ffffff; /* Metin rengi */\n"
+"    border-radius:15px;\n"
+"}\n"
+"\n"
+"/* Üzerine gelindiğinde */\n"
+"QPushButton:hover {\n"
+"    background-color: #0d730d; /* İkinci renk */\n"
+"    \n"
+"}\n"
+"\n"
+"/* Tıklandığında */\n"
+"QPushButton:pressed {\n"
+"    background-color: #393B3B; /* Üçüncü renk */\n"
+"    color: #000000; /* Tıklandığında metin rengini değiştirin, örneğin siyah yapın */\n"
+"}\n"
+"\n"
+"/* Tıklandıktan sonraki durum için (örneğin, bir toggle düğmesi) */\n"
+"QPushButton:checked {\n"
+"    background-color: #9932CC; /* Dördüncü renk */\n"
+"    color: #ffffff; /* Tıklandıktan sonraki durumda metin rengini değiştirin */\n"
+"}")
         self.manuel_baglan.setObjectName("manuel_baglan")
-        self.ses_islem_grunBox = QtWidgets.QGroupBox(Dialog)
-        self.ses_islem_grunBox.setGeometry(QtCore.QRect(410, 20, 281, 371))
+        self.ses_islem_grunBox = QtWidgets.QGroupBox(Form)
+        self.ses_islem_grunBox.setGeometry(QtCore.QRect(460, 50, 291, 231))
+        self.ses_islem_grunBox.setStyleSheet("background: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 #393B3B,stop:1 #121313);\n"
+"color:white;\n"
+"border-radius:20px;")
         self.ses_islem_grunBox.setObjectName("ses_islem_grunBox")
         self.ses_gonder_buton = QtWidgets.QPushButton(self.ses_islem_grunBox)
-        self.ses_gonder_buton.setGeometry(QtCore.QRect(12, 50, 101, 28))
+        self.ses_gonder_buton.setGeometry(QtCore.QRect(100, 30, 93, 31))
+        self.ses_gonder_buton.setStyleSheet("/* Normal durum için */\n"
+"QPushButton {\n"
+"    background-color: #95A5A6; /* İlk renk */\n"
+"    color: #ffffff; /* Metin rengi */\n"
+"    border-radius:15px;\n"
+"}\n"
+"\n"
+"/* Üzerine gelindiğinde */\n"
+"QPushButton:hover {\n"
+"    background-color: #0d730d; /* İkinci renk */\n"
+"    \n"
+"}\n"
+"\n"
+"/* Tıklandığında */\n"
+"QPushButton:pressed {\n"
+"    background-color: #393B3B; /* Üçüncü renk */\n"
+"    color: #000000; /* Tıklandığında metin rengini değiştirin, örneğin siyah yapın */\n"
+"}\n"
+"\n"
+"/* Tıklandıktan sonraki durum için (örneğin, bir toggle düğmesi) */\n"
+"QPushButton:checked {\n"
+"    background-color: #9932CC; /* Dördüncü renk */\n"
+"    color: #ffffff; /* Tıklandıktan sonraki durumda metin rengini değiştirin */\n"
+"}")
         self.ses_gonder_buton.setObjectName("ses_gonder_buton")
-        self.Ses_gonder_dur = QtWidgets.QPushButton(self.ses_islem_grunBox)
-        self.Ses_gonder_dur.setGeometry(QtCore.QRect(120, 50, 151, 28))
-        self.Ses_gonder_dur.setObjectName("Ses_gonder_dur")
         self.ses_al_devam = QtWidgets.QPushButton(self.ses_islem_grunBox)
-        self.ses_al_devam.setGeometry(QtCore.QRect(20, 140, 101, 28))
+        self.ses_al_devam.setGeometry(QtCore.QRect(100, 90, 93, 31))
+        self.ses_al_devam.setStyleSheet("/* Normal durum için */\n"
+"QPushButton {\n"
+"    background-color: #95A5A6; /* İlk renk */\n"
+"    color: #ffffff; /* Metin rengi */\n"
+"    border-radius:15px;\n"
+"}\n"
+"\n"
+"/* Üzerine gelindiğinde */\n"
+"QPushButton:hover {\n"
+"    background-color: #0d730d; /* İkinci renk */\n"
+"    \n"
+"}\n"
+"\n"
+"/* Tıklandığında */\n"
+"QPushButton:pressed {\n"
+"    background-color: #393B3B; /* Üçüncü renk */\n"
+"    color: #000000; /* Tıklandığında metin rengini değiştirin, örneğin siyah yapın */\n"
+"}\n"
+"\n"
+"/* Tıklandıktan sonraki durum için (örneğin, bir toggle düğmesi) */\n"
+"QPushButton:checked {\n"
+"    background-color: #9932CC; /* Dördüncü renk */\n"
+"    color: #ffffff; /* Tıklandıktan sonraki durumda metin rengini değiştirin */\n"
+"}")
         self.ses_al_devam.setObjectName("ses_al_devam")
-        self.ses_al_duraklat = QtWidgets.QPushButton(self.ses_islem_grunBox)
-        self.ses_al_duraklat.setGeometry(QtCore.QRect(150, 140, 111, 28))
-        self.ses_al_duraklat.setObjectName("ses_al_duraklat")
         self.baglantiyi_kes_buton = QtWidgets.QPushButton(self.ses_islem_grunBox)
-        self.baglantiyi_kes_buton.setGeometry(QtCore.QRect(90, 240, 101, 28))
+        self.baglantiyi_kes_buton.setGeometry(QtCore.QRect(100, 150, 93, 31))
+        self.baglantiyi_kes_buton.setStyleSheet("/* Normal durum için */\n"
+"QPushButton {\n"
+"    background-color: #95A5A6; /* İlk renk */\n"
+"    color: #ffffff; /* Metin rengi */\n"
+"    border-radius:15px;\n"
+"}\n"
+"\n"
+"/* Üzerine gelindiğinde */\n"
+"QPushButton:hover {\n"
+"    background-color: #0d730d; /* İkinci renk */\n"
+"    \n"
+"}\n"
+"\n"
+"/* Tıklandığında */\n"
+"QPushButton:pressed {\n"
+"    background-color: #393B3B; /* Üçüncü renk */\n"
+"    color: #000000; /* Tıklandığında metin rengini değiştirin, örneğin siyah yapın */\n"
+"}\n"
+"\n"
+"/* Tıklandıktan sonraki durum için (örneğin, bir toggle düğmesi) */\n"
+"QPushButton:checked {\n"
+"    background-color: #9932CC; /* Dördüncü renk */\n"
+"    color: #ffffff; /* Tıklandıktan sonraki durumda metin rengini değiştirin */\n"
+"}")
         self.baglantiyi_kes_buton.setObjectName("baglantiyi_kes_buton")
-        self.metin_grupBox = QtWidgets.QGroupBox(Dialog)
-        self.metin_grupBox.setGeometry(QtCore.QRect(170, 420, 441, 201))
+        self.metin_grupBox = QtWidgets.QGroupBox(Form)
+        self.metin_grupBox.setGeometry(QtCore.QRect(160, 320, 461, 211))
+        self.metin_grupBox.setStyleSheet("background: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 #393B3B,stop:1 #121313);\n"
+"color:white;\n"
+"border-radius:20px;")
         self.metin_grupBox.setObjectName("metin_grupBox")
         self.metin_yeri = QtWidgets.QTextEdit(self.metin_grupBox)
-        self.metin_yeri.setGeometry(QtCore.QRect(60, 20, 331, 111))
+        self.metin_yeri.setGeometry(QtCore.QRect(60, 30, 351, 111))
+        self.metin_yeri.setStyleSheet("background: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 #E7E7E7,stop:1 #D9E6E2);\n"
+"border-radius:20px;\n"
+"color:black;")
         self.metin_yeri.setObjectName("metin_yeri")
+        self.odaya_gir_buton = QtWidgets.QPushButton(self.metin_grupBox)
+        self.odaya_gir_buton.setGeometry(QtCore.QRect(270, 160, 93, 31))
+        self.odaya_gir_buton.setStyleSheet("/* Normal durum için */\n"
+"QPushButton {\n"
+"    background-color: #95A5A6; /* İlk renk */\n"
+"    color: #ffffff; /* Metin rengi */\n"
+"    border-radius:15px;\n"
+"}\n"
+"\n"
+"/* Üzerine gelindiğinde */\n"
+"QPushButton:hover {\n"
+"    background-color: #0d730d; /* İkinci renk */\n"
+"    \n"
+"}\n"
+"\n"
+"/* Tıklandığında */\n"
+"QPushButton:pressed {\n"
+"    background-color: #393B3B; /* Üçüncü renk */\n"
+"    color: #000000; /* Tıklandığında metin rengini değiştirin, örneğin siyah yapın */\n"
+"}\n"
+"\n"
+"/* Tıklandıktan sonraki durum için (örneğin, bir toggle düğmesi) */\n"
+"QPushButton:checked {\n"
+"    background-color: #9932CC; /* Dördüncü renk */\n"
+"    color: #ffffff; /* Tıklandıktan sonraki durumda metin rengini değiştirin */\n"
+"}")
+        self.odaya_gir_buton.setObjectName("odaya_gir_buton")
+        self.Oda_kodu_yeri = QtWidgets.QLineEdit(self.metin_grupBox)
+        self.Oda_kodu_yeri.setGeometry(QtCore.QRect(110, 160, 121, 31))
+        self.Oda_kodu_yeri.setStyleSheet("background-color:white;\n"
+"color:black;")
+        self.Oda_kodu_yeri.setObjectName("Oda_kodu_yeri")
+        self.ip_listesi = QtWidgets.QListWidget(Form)
+        self.ip_listesi.setGeometry(QtCore.QRect(40, 70, 331, 192))
+        self.ip_listesi.setStyleSheet("background: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 #E7E7E7,stop:1 #D9E6E2);\n"
+"border-radius:20px;\n"
+"color:black;")
+        self.ip_listesi.setObjectName("ip_listesi")
 
-        self.retranslateUi(Dialog)
-        QtCore.QMetaObject.connectSlotsByName(Dialog)
+        self.retranslateUi(Form)
+        QtCore.QMetaObject.connectSlotsByName(Form)
 
-    def retranslateUi(self, Dialog):
+    def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate
-        Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
-        self.ip_grup_box.setTitle(_translate("Dialog", "ip tarama"))
-        self.ip_tara_buton.setText(_translate("Dialog", "IP tara"))
-        self.otomatik_baglan_buton.setText(_translate("Dialog", "Otomatik Bağlan"))
-        self.manuel_baglan.setText(_translate("Dialog", "Manuel Bağlan"))
-        self.ses_islem_grunBox.setTitle(_translate("Dialog", "ses işlemleri"))
-        self.ses_gonder_buton.setText(_translate("Dialog", "Ses Gönder"))
-        self.Ses_gonder_dur.setText(_translate("Dialog", "Ses gönermeyi durdur"))
-        self.ses_al_devam.setText(_translate("Dialog", "Ses al-devam"))
-        self.ses_al_duraklat.setText(_translate("Dialog", "Ses al-duraklat"))
-        self.baglantiyi_kes_buton.setText(_translate("Dialog", "Bağlantıyı kes"))
-        self.metin_grupBox.setTitle(_translate("Dialog", "Metin işlemleri"))
+        Form.setWindowTitle(_translate("Form", "Form"))
+        self.otomatik_baglan_buton.setText(_translate("Form", "Otomatik Bağlan"))
+        self.ip_tara_buton.setText(_translate("Form", "IP Tara"))
+        self.manuel_baglan.setText(_translate("Form", "Bağlan"))
+        self.ses_islem_grunBox.setTitle(_translate("Form", "Ses işlemleri"))
+        self.ses_gonder_buton.setText(_translate("Form", "Mikrofon"))
+        self.ses_al_devam.setText(_translate("Form", "Kulaklık"))
+        self.baglantiyi_kes_buton.setText(_translate("Form", "İletişimi kapat"))
+        self.metin_grupBox.setTitle(_translate("Form", "Metin İşlemleri"))
+        self.odaya_gir_buton.setText(_translate("Form", "Odaya katıl"))
 
 
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
-    Dialog = QtWidgets.QDialog()
-    ui = Ui_Dialog()
-    ui.setupUi(Dialog)
-    Dialog.show()
+    Form = QtWidgets.QWidget()
+    ui = Ui_Form()
+    ui.setupUi(Form)
+    Form.show()
     sys.exit(app.exec_())

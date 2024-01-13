@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import *
 from src_py.src_ui.secim_ekrani import  Secim
 
 from src_py.istemci_pyqt5 import istemci_page
-from src_py.src_ui.menu_sunucu_tarafi import MyWindow
+from src_py.menu_sunucu_tarafi import MyWindow
 import webbrowser
 """
 Doktor butonu sunucu tarafı,

@@ -21,7 +21,7 @@ class Sunucu_page(QMainWindow):
         self.sunucu = Ui_Dialog()
         self.sunucu.setupUi(self)
 
-        
+        self.background_color = "#404040"
         self.sunucu.pushButton_DosyaSec.clicked.connect(self.dosya_sec)
         self.sunucu.efekt_uygula.clicked.connect(self.radio_buton_efekt)
         self.sunucu.pushButton_MetinKaydet.clicked.connect(self.metni_kaydet)
@@ -150,3 +150,5 @@ class Sunucu_page(QMainWindow):
         dosya_adi = f"metin_{tarih}.txt"
         with open(dosya_adi, "w", encoding="utf-8") as dosya:
             dosya.write(metin)
+    def get_background_color(self):
+        return self.background_color
