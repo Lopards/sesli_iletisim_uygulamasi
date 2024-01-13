@@ -1,3 +1,4 @@
+#arayüzlü uygulama için geliştirilen flask uygulaması
 from flask import Flask, render_template, session, redirect, request
 from flask_socketio import SocketIO, emit, send, join_room, leave_room
 import base64
@@ -20,17 +21,34 @@ class ChatApp:
         self.users_in_rooms = {}
 
         self.connected_users= {}
-        self.setup_routes()
+        #self.setup_routes()
         self.setup_socketio()
 
-    def setup_routes(self):
-        @self.app.route("/")
-        def index():
-            return render_template("index.html")
-        
+    # Get_sid ve  get_active_sids  fonksiyonların amacı sesli mesajın veya yazılı mesajın sadece oda üyelerine göndermektir.
+    def get_sid(self, name):
+            
+            # Bu fonksiyon, verilen ismin sid değerini döndürür
+            # Eğer isim self.connected_users sözlüğünde yoksa None döndürür
+            for sid, user_data in self.connected_users.items():
+                if user_data["name"] == name:
+                    return sid
+            return None        
+    
+    def get_active_sids(self, room):
+        # Bu fonksiyon, verilen odadaki aktif üyelerin sid değerlerini bir liste olarak döndürür
+        # Eğer oda yoksa veya odada aktif üye yoksa boş bir liste döndürür
+        active_sids = []
+        if room in self.users_in_rooms:
+            for name in self.users_in_rooms[room]:
+                sid = self.get_sid(name) # Daha önce yazdığımız get_sid fonksiyonunu kullanıyoruz
+                if sid:
+                    active_sids.append(sid)
+        return active_sids
+
         
     def setup_socketio(self):  
-        @self.socketio.on("baglan")
+        
+        @self.socketio.on("baglan") # Flask' a bağlanan kullanıcıların bilgileri alınıyor ve kaydediliyor.
         def baglan(data):
             print("veri:",data)
             name = data.get("name")  # Name ve room bilgilerini auth içinden alır
@@ -51,7 +69,7 @@ class ChatApp:
             send({"name": name, "message": "has entered the room"})
             self.rooms[room]["members"].append(name)
             self.users_in_rooms[room].append(name)
-            print("self.users.in.room [room]pritn etmek ben",self.users_in_rooms[room])
+            
             self.connected_users[request.sid] = {"name": name, "room": room} # Bağlı kullanıcıların bilgilerini sakla
             print(f"{name} joined room {room}")
 
@@ -76,8 +94,7 @@ class ChatApp:
                 if room in self.rooms:
                     self.rooms[room]["members"].remove(name)
                     self.users_in_rooms[room].remove(name)
-                    print(len(self.users_in_rooms[room]))
-                    print(self.rooms[room])
+                   
                     if room in self.rooms and len(self.rooms[room]["members"]) <= 0:
                         
                         del self.rooms[room]
@@ -107,6 +124,7 @@ class ChatApp:
 
             self.connected_users[request.sid] = {"name": name, "room": code}
             self.socketio.emit("create_room", {"name": name, "room": code}, to=code)
+            
 
 
 
@@ -128,21 +146,27 @@ class ChatApp:
 
                 # Base64 ile encode edip geri gönderme işlemi
                 with open(file_name, "rb") as file:
-                    file_data_encoded = base64.b64encode(file.read()).decode("utf-8") # dosya içeriğini almak içn
-                
+                    file_data_encoded = base64.b64encode(file.read()).decode("utf-8")
+               
                 self.socketio.emit(
-                    "file_uploaded", {"file_name": file_name, "file_data": file_data_encoded}
-                )
+                    "file_uploaded", {"file_name": file_name, "file_data": file_data_encoded} 
+                )# dosyayı odadakilere gönder
 
             except Exception as e:
                 print(f"Hata dosya alınırken: {e}")
-         
 
         @self.socketio.on("audio_data") # doktor tarafından fgelen ses verisini odadaki üyelere yönlendirir.
         def audio_data(data1):
             user_data = self.connected_users.get(request.sid)
             room = user_data.get("room")
-            emit("data1", data1, to=room, broadcast=True)
+            
+            if user_data and user_data["name"] in self.users_in_rooms[room]:
+                # Oda içindeki aktif üyelerin sid değerlerini al
+                active_sids = self.get_active_sids(room)
+                # Mesajı yalnızca aktif üyelere gönder
+                for sid in active_sids:
+                    emit("data1", data1, to=sid, broadcast=True)
+            #emit("data1", data1, to=room, broadcast=True)
      
 
         @self.socketio.on("audio_data2") # Öğrenci tarafından fgelen ses verisini odadaki üyelere yönlendirir.
@@ -152,13 +176,13 @@ class ChatApp:
             emit("data2", data2, to=room, broadcast=True)
             #
 
-        @self.socketio.on("output_device_list")
+        @self.socketio.on("output_device_list") # öğrenci bilgisayarının Hoparlör listesi Doktora aktarılınır.
         def output_device_list(List):   
             user_data = self.connected_users.get(request.sid)
             room = user_data.get("room")
             emit("liste", List, to=room)
 
-        @self.socketio.on("output_device_index")
+        @self.socketio.on("output_device_index")# Doktor hoparlör listesinden seçtiği indexi gönderir ve hoparlörü seçmiş olur.
         def output_device_list(index):
             user_data = self.connected_users.get(request.sid)
             room = user_data.get("room")
@@ -168,9 +192,9 @@ class ChatApp:
         @self.socketio.on("message")
         def message(data):
             room = session.get("room") or data["room"]
-            name = session.get("name") or data["name"]
+            sender_name = session.get("name") or data["name"]
             message = data["data"]
-            print("message metodu name ve room print:",name,room)
+            
             efekt = data.get("efekt")
             key = data.get("key")  # Anahtarı al
 
@@ -179,38 +203,81 @@ class ChatApp:
                 return
 
             content = {
-                "name": name,
+                "name": sender_name,
                 "message": message,
                 "efekt": efekt,
                 "key": key,  # Anahtarı ekle
             }
-            send(content, to=room)
-            self.rooms[room]["messages"].append(content)
-            print(f"{name} said: {message}")
 
-        @self.socketio.on("see_members_on_room")
+            # Odadan çıkartılan kişiyi kontrol et
+            user_data = self.connected_users.get(request.sid)
+            if user_data and user_data["name"] in self.users_in_rooms[room]:
+                # Oda içindeki aktif üyelerin sid değerlerini al
+                active_sids = self.get_active_sids(room)
+                # Mesajı yalnızca aktif üyelere gönder
+                for sid in active_sids:
+                    send(content, to=sid)
+                self.rooms[room]["messages"].append(content)
+                print(f"{sender_name} said: {message}")
+            else:
+                print(f"{sender_name} odadan çıkartıldığı için mesaj gönderilmedi.")
+
+
+
+        @self.socketio.on("see_members_on_room") # Doktorun odadaki üyeleri gormesini sağlar.
         def see_members_on_room():
-                #room = session.get("room") or data["room"]
-                
+
                 user_data = self.connected_users.get(request.sid)
                 room = user_data.get("room")
                 members = self.rooms[room]["members"]
                 emit("members",members,to=room)
         
-        @self.socketio.on("remove_member")
+        @self.socketio.on("remove_member")#Doktorun odadan üye atmasını sağlar
         def remove_member(member_info):
             try:
                 user_data = self.connected_users.get(request.sid)
                 room = user_data.get("room")
+                print(room)
 
-                self.users_in_rooms[room].remove(member_info)
+                if member_info in self.rooms[room]["members"]:
+                    
+                    self.rooms[room]["members"].remove(member_info)
+                    print(f"{member_info} odadan çıkartıldı")
+                   
 
+                    # Odadan çıkartılan kişiye odadan ayrıldığı bilgisini gönderme
+                    self.socketio.emit("user_left", {"name": member_info, "room": room}, to=room)
+
+                if member_info in self.users_in_rooms[room]:
+                    self.users_in_rooms[room].remove(member_info)
+                    
+                    print(f"{member_info} odadaki kullanıcılardan çıkartıldı")
+                    
+
+                # Odadan çıkartılan kişinin sid değerini bul
+                sid = self.get_sid(member_info)
+                # Eğer sid değeri varsa, self.connected_users sözlüğünden sil
+                if sid:
+  
+                    del self.connected_users[sid]
+                    
             except Exception as e:
-                print("hata,", e)
+                print("hata:", e)
 
+        
+
+
+        # ekran görüntüsü paylaşımı için konuldu. Şuan aktif değil.
+        @self.socketio.on("start_stream")
+        def start_stream():
+            print("stream başladı")
+
+        @self.socketio.on("stop_stram") 
+        def stop_stram():
+            print("stream durdu")      
     
         if __name__ == "__main__":
-            self.socketio.run(self.app, host="192.168.1.45", debug=True)
+            self.socketio.run(self.app, host="192.168.1.35", debug=True)
 
 
 if __name__ == "__main__":
