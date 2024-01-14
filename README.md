@@ -28,13 +28,15 @@ artık kayıt oldunuz Uygulamaya geçiş yapabilirsiniz.
 ## Eklenecek Güncellemeler
 - Hoparlör seçiminin Doktor tarafından yapılmasını internete taşıyacağız --> *Yapıldı*
 - Ekran görüntüsünü yollamayı bir butona atanacak
+- Odadan Üye atma Eklenecek --> *Yapııldı*
 
 ---
 ![Ekran görüntüsü 2023-12-14 123236](https://github.com/Lopards/sesli_iletisim_uygulamasi/assets/101428835/85055d56-0b74-428c-b33e-484f9e15982a)
 
 ---
 
-![Ekran görüntüsü 2023-12-14 123221](https://github.com/Lopards/sesli_iletisim_uygulamasi/assets/101428835/0065ca6f-20c1-489c-90f4-86a73beb056c)
+![image](https://github.com/Lopards/sesli_iletisim_uygulamasi/assets/101428835/8ac56603-81e9-4024-8118-18c977a7548f)
+
 
 ---
 
