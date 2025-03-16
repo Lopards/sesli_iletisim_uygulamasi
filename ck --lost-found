@@ -1,0 +1,40 @@
+[33mbd7fe1f[m[33m ([m[1;36mHEAD -> [m[1;32mtez[m[33m)[m HEAD@{0}: reset: moving to HEAD
+[33mbd7fe1f[m[33m ([m[1;36mHEAD -> [m[1;32mtez[m[33m)[m HEAD@{1}: reset: moving to bd7fe1f
+[33m91dda3a[m[33m ([m[1;31morigin/tez[m[33m)[m HEAD@{2}: reset: moving to HEAD
+[33m91dda3a[m[33m ([m[1;31morigin/tez[m[33m)[m HEAD@{3}: reset: moving to HEAD
+[33m91dda3a[m[33m ([m[1;31morigin/tez[m[33m)[m HEAD@{4}: reset: moving to HEAD
+[33m91dda3a[m[33m ([m[1;31morigin/tez[m[33m)[m HEAD@{5}: checkout: moving from kayıt_eklemeli to tez
+[33mbd7fe1f[m[33m ([m[1;36mHEAD -> [m[1;32mtez[m[33m)[m HEAD@{6}: reset: moving to HEAD
+[33mbd7fe1f[m[33m ([m[1;36mHEAD -> [m[1;32mtez[m[33m)[m HEAD@{7}: checkout: moving from main to kayıt_eklemeli
+[33m823da23[m HEAD@{8}: reset: moving to HEAD
+[33m823da23[m HEAD@{9}: checkout: moving from kayıt_eklemeli to main
+[33mbd7fe1f[m[33m ([m[1;36mHEAD -> [m[1;32mtez[m[33m)[m HEAD@{10}: checkout: moving from main to kayıt_eklemeli
+[33m823da23[m HEAD@{11}: checkout: moving from kayıt_eklemeli to main
+[33m79ef13a[m HEAD@{12}: reset: moving to HEAD
+[33m79ef13a[m HEAD@{13}: reset: moving to 79ef13aa252023398faf3c9e929cef084e3db83c
+[33m05267df[m HEAD@{14}: commit: client taraftan gelecek olan ip tarama işleminde
+[33m79ef13a[m HEAD@{15}: reset: moving to 79ef13aa252023398faf3c9e929cef084e3db83c
+[33mf5940af[m HEAD@{16}: commit: client taraftan gelecek olan ip tarama işleminde
+[33m79ef13a[m HEAD@{17}: commit: durum sütunu kontrol eklendi
+[33m20f17b8[m HEAD@{18}: commit: sql-durum-> çıkıldı___
+[33mef9e5a4[m HEAD@{19}: commit (merge): Merge branch 'kayıt_eklemeli' of https://github.com/Lopards/sesli_iletisim_uygulamasi into kayıt_eklemeli
+[33maa837c8[m HEAD@{20}: commit: registerdeki for = "text" düzeltildi
+[33ma364b0c[m HEAD@{21}: commit: register- email
+[33ma6c841f[m HEAD@{22}: commit: kayit yeri düzenlendi
+[33m4c7d9bd[m HEAD@{23}: commit (merge): Merge branch 'kayıt_eklemeli' of https://github.com/Lopards/sesli_iletisim_uygulamasi into kayıt_eklemeli
+[33m6524513[m HEAD@{24}: commit: Update web_kayit.py
+[33mf58dbbc[m HEAD@{25}: commit: kayıt yeri düzenlendi
+[33m143a06d[m HEAD@{26}: commit: mysql'e kayıt ekleme yapıldı
+[33m6146068[m HEAD@{27}: checkout: moving from main to kayıt_eklemeli
+[33m6146068[m HEAD@{28}: commit: açıklamalar yapıldı
+[33m8c44801[m HEAD@{29}: commit: ip tarama kısmı düzeltildi
+[33m171280c[m HEAD@{30}: commit: ip listesi_renklendirme
+[33m6083979[m HEAD@{31}: commit: dosya düzenleme son halini aldı. src_py.src_
+[33m5f1bfe9[m HEAD@{32}: commit: oto-manuel- ip adres kaydetme eklendi
+[33mc8b317a[m HEAD@{33}: commit: dosya ve kod düzenlemeleri yapıldı.
+[33m55f5bf7[m HEAD@{34}: pull --ff --recurse-submodules --progress origin: Fast-forward
+[33m7744f32[m HEAD@{35}: reset: moving to HEAD
+[33m7744f32[m HEAD@{36}: commit: dosya konumları düzenlendi
+[33m149423a[m HEAD@{37}: commit: servera hoparlör listesi gönderme
+[33mdf67360[m HEAD@{38}: commit: gerekli dosyalar eklendi
+[33mdaafc5f[m HEAD@{39}: commit (initial): py dosyaları eklendi

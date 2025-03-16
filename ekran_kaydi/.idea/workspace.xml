@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="dd649619-c206-4370-9df5-141b31ca463e" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/../deneme.py" beforeDir="false" afterPath="$PROJECT_DIR$/../deneme.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ip_addresses.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../ip_addresses.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src_py/anlik_erkek_pyqt5.py" beforeDir="false" afterPath="$PROJECT_DIR$/../src_py/anlik_erkek_pyqt5.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src_py/istemci_pyqt5.py" beforeDir="false" afterPath="$PROJECT_DIR$/../src_py/istemci_pyqt5.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src_py/kayit_yeri_pyqt5.py" beforeDir="false" afterPath="$PROJECT_DIR$/../src_py/kayit_yeri_pyqt5.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src_py/secim_ekran_pyqt5.py" beforeDir="false" afterPath="$PROJECT_DIR$/../src_py/secim_ekran_pyqt5.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src_py/server_erkek_pyqt5.py" beforeDir="false" afterPath="$PROJECT_DIR$/../src_py/server_erkek_pyqt5.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src_py/src_metin/metin_oku.py" beforeDir="false" afterPath="$PROJECT_DIR$/../src_py/src_metin/metin_oku.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src_py/src_ui/Server_erkek.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src_py/src_ui/istemci.py" beforeDir="false" afterPath="$PROJECT_DIR$/../src_py/src_ui/istemci.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src_py/src_ui/kayit_yeri.py" beforeDir="false" afterPath="$PROJECT_DIR$/../src_py/src_ui/kayit_yeri.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src_py/src_ui/kayit_yeri.ui" beforeDir="false" afterPath="$PROJECT_DIR$/../src_py/src_ui/kayit_yeri.ui" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src_py/src_ui/menu_sunucu_tarafi.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src_py/src_ui/server_man.py" beforeDir="false" afterPath="$PROJECT_DIR$/../src_py/src_ui/server_man.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src_py/src_ui/sunucu.py" beforeDir="false" afterPath="$PROJECT_DIR$/../src_py/src_ui/sunucu.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src_py/sunucu_pyqt5.py" beforeDir="false" afterPath="$PROJECT_DIR$/../src_py/sunucu_pyqt5.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../templates/deneme.html" beforeDir="false" afterPath="$PROJECT_DIR$/../templates/deneme.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../templates/register.html" beforeDir="false" afterPath="$PROJECT_DIR$/../templates/register.html" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 7
+}</component>
+  <component name="ProjectId" id="2acQhxrL5zCdrURKuX6q60MKlym" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Python.receiver.executor&quot;: &quot;Run&quot;,
+    &quot;Python.sender.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;kayıt__eklemeli&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  }
+}</component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-python-sdk-50da183f06c8-2887949eec09-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-233.13135.95" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="dd649619-c206-4370-9df5-141b31ca463e" name="Changes" comment="" />
+      <created>1704615513417</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1704615513417</updated>
+      <workItem from="1704615515690" duration="551000" />
+      <workItem from="1704649531605" duration="1305000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/ekran_kaydi$sender.coverage" NAME="sender Coverage Results" MODIFIED="1704649586763" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ekran_kaydi$receiver.coverage" NAME="receiver Coverage Results" MODIFIED="1704649585605" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+  </component>
+</project>

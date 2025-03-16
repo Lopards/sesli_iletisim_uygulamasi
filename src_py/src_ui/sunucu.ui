@@ -1,0 +1,443 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Dialog</class>
+ <widget class="QDialog" name="Dialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>695</width>
+    <height>513</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>694</width>
+    <height>479</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">color:white;
+background: #404040;</string>
+  </property>
+  <widget class="QPushButton" name="pushButton_DosyaSec">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>40</y>
+     <width>93</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">/* Normal durum için */
+QPushButton {
+    background-color: #95A5A6; /* İlk renk */
+    color: #ffffff; /* Metin rengi */
+	border-radius:15px;
+}
+
+/* Üzerine gelindiğinde */
+QPushButton:hover {
+    background-color: #0d730d; /* İkinci renk */
+	
+}
+
+/* Tıklandığında */
+QPushButton:pressed {
+    background-color: #ffcc00; /* Üçüncü renk */
+    color: #000000; /* Tıklandığında metin rengini değiştirin, örneğin siyah yapın */
+}
+
+/* Tıklandıktan sonraki durum için (örneğin, bir toggle düğmesi) */
+QPushButton:checked {
+    background-color: #9932CC; /* Dördüncü renk */
+    color: #ffffff; /* Tıklandıktan sonraki durumda metin rengini değiştirin */
+}</string>
+   </property>
+   <property name="text">
+    <string>Dosya Seç</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="lineEdit_dosyaAdi">
+   <property name="geometry">
+    <rect>
+     <x>160</x>
+     <y>40</y>
+     <width>401</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QComboBox {
+    border: 2px solid #67b26f; /* Kenarlık rengi ve kalınlığı */
+    border-radius: 5px; /* Kenarlık köşe yuvarlama */
+}
+</string>
+   </property>
+  </widget>
+  <widget class="QRadioButton" name="radioButton_kadin">
+   <property name="geometry">
+    <rect>
+     <x>40</x>
+     <y>120</y>
+     <width>95</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Kadın Sesi</string>
+   </property>
+  </widget>
+  <widget class="QRadioButton" name="radioButton_Erkek">
+   <property name="geometry">
+    <rect>
+     <x>40</x>
+     <y>170</y>
+     <width>95</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Erkek Sesi</string>
+   </property>
+  </widget>
+  <widget class="QRadioButton" name="radioButton_Cocuk">
+   <property name="geometry">
+    <rect>
+     <x>40</x>
+     <y>220</y>
+     <width>95</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Çocuk sesi</string>
+   </property>
+  </widget>
+  <widget class="QGroupBox" name="groupBox_Metin">
+   <property name="geometry">
+    <rect>
+     <x>380</x>
+     <y>90</y>
+     <width>271</width>
+     <height>271</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">background: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 #393B3B,stop:1 #121313);
+border-radius:20px;</string>
+   </property>
+   <property name="title">
+    <string>MetinBox</string>
+   </property>
+   <widget class="QPushButton" name="pushButton_MetinKaydet">
+    <property name="geometry">
+     <rect>
+      <x>90</x>
+      <y>150</y>
+      <width>93</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">/* Normal durum için */
+QPushButton {
+    background-color: #95A5A6; /* İlk renk */
+    color: #ffffff; /* Metin rengi */
+	border-radius:15px;
+}
+
+/* Üzerine gelindiğinde */
+QPushButton:hover {
+    background-color: #0d730d; /* İkinci renk */
+	
+}
+
+/* Tıklandığında */
+QPushButton:pressed {
+    background-color: #ffcc00; /* Üçüncü renk */
+    color: #000000; /* Tıklandığında metin rengini değiştirin, örneğin siyah yapın */
+}
+
+/* Tıklandıktan sonraki durum için (örneğin, bir toggle düğmesi) */
+QPushButton:checked {
+    background-color: #9932CC; /* Dördüncü renk */
+    color: #ffffff; /* Tıklandıktan sonraki durumda metin rengini değiştirin */
+}</string>
+    </property>
+    <property name="text">
+     <string>Metni kaydet</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_MetiNOku">
+    <property name="geometry">
+     <rect>
+      <x>90</x>
+      <y>190</y>
+      <width>93</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">/* Normal durum için */
+QPushButton {
+    background-color: #95A5A6; /* İlk renk */
+    color: #ffffff; /* Metin rengi */
+	border-radius:15px;
+}
+
+/* Üzerine gelindiğinde */
+QPushButton:hover {
+    background-color: #0d730d; /* İkinci renk */
+	
+}
+
+/* Tıklandığında */
+QPushButton:pressed {
+    background-color: #ffcc00; /* Üçüncü renk */
+    color: #000000; /* Tıklandığında metin rengini değiştirin, örneğin siyah yapın */
+}
+
+/* Tıklandıktan sonraki durum için (örneğin, bir toggle düğmesi) */
+QPushButton:checked {
+    background-color: #9932CC; /* Dördüncü renk */
+    color: #ffffff; /* Tıklandıktan sonraki durumda metin rengini değiştirin */
+}</string>
+    </property>
+    <property name="text">
+     <string>Metni oku</string>
+    </property>
+   </widget>
+   <widget class="QTextEdit" name="textEdit">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>20</y>
+      <width>231</width>
+      <height>87</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 #E7E7E7,stop:1 #D9E6E2);
+color:black;
+border-radius:15px;</string>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="efekt_combobox">
+    <property name="geometry">
+     <rect>
+      <x>90</x>
+      <y>120</y>
+      <width>101</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QComboBox {
+    border: 2px solid #67b26f; /* Kenarlık rengi ve kalınlığı */
+    border-radius: 5px; /* Kenarlık köşe yuvarlama */
+}
+</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QGroupBox" name="groupBox_AnlikSes">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>310</y>
+     <width>261</width>
+     <height>111</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>Anlik_ses</string>
+   </property>
+   <widget class="QPushButton" name="pushButton_AnlikErkek">
+    <property name="geometry">
+     <rect>
+      <x>80</x>
+      <y>10</y>
+      <width>93</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">/* Normal durum için */
+QPushButton {
+    background-color: #95A5A6; /* İlk renk */
+    color: #ffffff; /* Metin rengi */
+	border-radius:15px;
+}
+
+/* Üzerine gelindiğinde */
+QPushButton:hover {
+    background-color: #0d730d; /* İkinci renk */
+	
+}
+
+/* Tıklandığında */
+QPushButton:pressed {
+    background-color: #ffcc00; /* Üçüncü renk */
+    color: #000000; /* Tıklandığında metin rengini değiştirin, örneğin siyah yapın */
+}
+
+/* Tıklandıktan sonraki durum için (örneğin, bir toggle düğmesi) */
+QPushButton:checked {
+    background-color: #9932CC; /* Dördüncü renk */
+    color: #ffffff; /* Tıklandıktan sonraki durumda metin rengini değiştirin */
+}</string>
+    </property>
+    <property name="text">
+     <string>Anlık Erkek</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_AnlikKadin">
+    <property name="geometry">
+     <rect>
+      <x>80</x>
+      <y>57</y>
+      <width>93</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">/* Normal durum için */
+QPushButton {
+    background-color: #95A5A6; /* İlk renk */
+    color: #ffffff; /* Metin rengi */
+	border-radius:15px;
+}
+
+/* Üzerine gelindiğinde */
+QPushButton:hover {
+    background-color: #0d730d; /* İkinci renk */
+	
+}
+
+/* Tıklandığında */
+QPushButton:pressed {
+    background-color: #ffcc00; /* Üçüncü renk */
+    color: #000000; /* Tıklandığında metin rengini değiştirin, örneğin siyah yapın */
+}
+
+/* Tıklandıktan sonraki durum için (örneğin, bir toggle düğmesi) */
+QPushButton:checked {
+    background-color: #9932CC; /* Dördüncü renk */
+    color: #ffffff; /* Tıklandıktan sonraki durumda metin rengini değiştirin */
+}</string>
+    </property>
+    <property name="text">
+     <string>Anlık Kadın</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QPushButton" name="pushButton_SesKaydi">
+   <property name="geometry">
+    <rect>
+     <x>590</x>
+     <y>37</y>
+     <width>93</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">/* Normal durum için */
+QPushButton {
+    background-color: #95A5A6; /* İlk renk */
+    color: #ffffff; /* Metin rengi */
+	border-radius:15px;
+}
+
+/* Üzerine gelindiğinde */
+QPushButton:hover {
+    background-color: #0d730d; /* İkinci renk */
+	
+}
+
+/* Tıklandığında */
+QPushButton:pressed {
+    background-color: #ffcc00; /* Üçüncü renk */
+    color: #000000; /* Tıklandığında metin rengini değiştirin, örneğin siyah yapın */
+}
+
+/* Tıklandıktan sonraki durum için (örneğin, bir toggle düğmesi) */
+QPushButton:checked {
+    background-color: #9932CC; /* Dördüncü renk */
+    color: #ffffff; /* Tıklandıktan sonraki durumda metin rengini değiştirin */
+}</string>
+   </property>
+   <property name="text">
+    <string>Ses kaydı</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="efekt_uygula">
+   <property name="geometry">
+    <rect>
+     <x>190</x>
+     <y>257</y>
+     <width>93</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">/* Normal durum için */
+QPushButton {
+    background-color: #95A5A6; /* İlk renk */
+    color: #ffffff; /* Metin rengi */
+	border-radius:15px;
+}
+
+/* Üzerine gelindiğinde */
+QPushButton:hover {
+    background-color: #0d730d; /* İkinci renk */
+	
+}
+
+/* Tıklandığında */
+QPushButton:pressed {
+    background-color: #ffcc00; /* Üçüncü renk */
+    color: #000000; /* Tıklandığında metin rengini değiştirin, örneğin siyah yapın */
+}
+
+/* Tıklandıktan sonraki durum için (örneğin, bir toggle düğmesi) */
+QPushButton:checked {
+    background-color: #9932CC; /* Dördüncü renk */
+    color: #ffffff; /* Tıklandıktan sonraki durumda metin rengini değiştirin */
+}</string>
+   </property>
+   <property name="text">
+    <string>efekti uygula</string>
+   </property>
+  </widget>
+  <widget class="QRadioButton" name="radioButton_yasli_adam">
+   <property name="geometry">
+    <rect>
+     <x>40</x>
+     <y>260</y>
+     <width>121</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Yaşlı Adam sesi</string>
+   </property>
+  </widget>
+  <zorder>pushButton_DosyaSec</zorder>
+  <zorder>lineEdit_dosyaAdi</zorder>
+  <zorder>radioButton_kadin</zorder>
+  <zorder>radioButton_Erkek</zorder>
+  <zorder>radioButton_Cocuk</zorder>
+  <zorder>groupBox_AnlikSes</zorder>
+  <zorder>pushButton_SesKaydi</zorder>
+  <zorder>groupBox_Metin</zorder>
+  <zorder>efekt_uygula</zorder>
+  <zorder>radioButton_yasli_adam</zorder>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
