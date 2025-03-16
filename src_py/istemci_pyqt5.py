@@ -106,7 +106,7 @@ class istemci_page(QMainWindow):
         threading.Thread(target=self.receive_file2).start()
 
 
-            def receive_text(self):
+    def receive_text(self):
         """
         Metin göndermek için ayrı bir socket bağlantısı kuruyorum.
         Bunun sebebi ses verileriyle metin verilerinin birbirleriyle karışması ve istenmedik sorunlara yol açmasıydı.
@@ -417,17 +417,19 @@ class istemci_page(QMainWindow):
        
 
     def scan_ip(self):  # çevredeki diğer cihazların ip numaralarını listeler
-        
-        import ping3
+
+
         ip_address = socket.gethostbyname(socket.gethostname())
         ip_range = '.'.join(ip_address.split('.')[:3]) + '.0/24'
         nm = nmap.PortScanner()
         nm.scan(ip_range, arguments='-sn')
         hosts = nm.all_hosts()
         print("Ağdaki tüm cihazların IP ve MAC adresleri:")
+
         
         expected_message = "Beklenen6_Mesaj"  # Eşleşmesi beklenen mesaj
         
+
         for host in hosts:
             if 'mac' in nm[host]['addresses']:
                 ip_address = nm[host]['addresses']['ipv4']
@@ -484,6 +486,56 @@ class istemci_page(QMainWindow):
                        brush_foreground = QBrush(QColor("white"))
                        item.setBackground(brush_background)
                        item.setForeground(brush_foreground)     
+
+
+        """
+        Eğer listedeki ip numaralarla daha önce bağlantı kurulduysa mavi renge
+        eğer listedeki ip numarası en son bağlanan ip numarasına eşitse yeşi renge boyancaktır.""" 
+            
+        with open(self.ip_file, "r") as f:
+            ip_addresses_from_file = [line.strip() for line in f]
+
+        for i in range(self.istemci.ip_listesi.count()):
+            item = self.istemci.ip_listesi.item(i)
+            if item is not None:
+                ip_from_list = item.text().split()[0]
+                if item is not None and item.text().split()[0] == self.istemci.ip_combobox.currentText():
+                    brush_background = QBrush(QColor("green"))
+                    brush_foreground = QBrush(QColor("white"))
+                    item.setBackground(brush_background)
+                    item.setForeground(brush_foreground)
+                elif ip_from_list in ip_addresses_from_file:
+                    brush_background = QBrush(QColor("#1874cd"))
+                    brush_foreground = QBrush(QColor("white"))
+                    item.setBackground(brush_background)
+                    item.setForeground(brush_foreground)
+
+        if not item: #eğer local ağda cihaz bulunamadıysa nete bak.  amaç servera
+
+            url = "https://mesajlasma-41995f5c6231.herokuapp.com/deneme.html"
+
+            response = requests.get(url)
+
+            if response.status_code == 200:
+                # Web sayfası başarılı bir şekilde alındı.
+                # sayfa içeriğini işle
+                soup = BeautifulSoup(response.text, 'html.parser')
+                ip_list = []
+
+                # Tüm <li> etiketlerini bul
+                for li in soup.find_all('li'):
+                    ip = li.text.strip()  # <li> içeriğini al ve boşlukları temizle
+                    ip_list.append(ip)
+
+                # IP adreslerini yazdır
+                print("Bağlı IP Adresleri:")
+                for ip in ip_list:
+                    item_text = f"{ip}"
+                    item = QListWidgetItem(item_text)
+                    self.istemci.ip_listesi.addItem(item)
+                    
+            else:
+                print("Sayfa alınamadı. HTTP durum kodu:", response.status_code)
 
                 
 
